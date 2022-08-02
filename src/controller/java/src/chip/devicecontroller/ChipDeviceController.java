@@ -192,7 +192,6 @@ public class ChipDeviceController {
     return setNOCChain(deviceControllerPtr, params);
   }
 
-
   /**
    * Update the network credentials held by the commissioner for the current commissioning session.
    * The updated values will be used by the commissioner if the network credentials haven't already
@@ -334,8 +333,13 @@ public class ChipDeviceController {
       byte[] pai) {
     if (nocChainIssuer != null) {
       nocChainIssuer.onNOCChainGenerationNeeded(
-          csrElements, csrNonce, attestationSignature, attestationChallenge,
-          attestationElements, dac, pai);
+          csrElements,
+          csrNonce,
+          attestationSignature,
+          attestationChallenge,
+          attestationElements,
+          dac,
+          pai);
     }
   }
 
@@ -686,13 +690,9 @@ public class ChipDeviceController {
     /**
      * Notifies when operational cert generation is needed.
      *
-     * Once generated, implementor should populate the following fields on the ControllerParams object
-     * and call setNOCChain():
-     * - ipk
-     * - rootCertificate
-     * - intermediateCertificate
-     * - operationalCertificate
-     * - adminSubject
+     * <p>Once generated, implementor should populate the following fields on the ControllerParams
+     * object and call setNOCChain(): - ipk - rootCertificate - intermediateCertificate -
+     * operationalCertificate - adminSubject
      */
     void onNOCChainGenerationNeeded(
         byte[] csrElements,
