@@ -325,16 +325,16 @@ public class ChipDeviceController {
   }
 
   public void onNOCChainGenerationNeeded(
-      byte[] csrElements, 
-      byte[] csrNonce, 
-      byte[] attestationSignature, 
-      byte[] attestationChallenge, 
-      byte[] attestationElements, 
-      byte[] dac, 
+      byte[] csrElements,
+      byte[] csrNonce,
+      byte[] attestationSignature,
+      byte[] attestationChallenge,
+      byte[] attestationElements,
+      byte[] dac,
       byte[] pai) {
     if (nocChainIssuer != null) {
       nocChainIssuer.onNOCChainGenerationNeeded(
-          csrElements, csrNonce, attestationSignature, attestationChallenge, 
+          csrElements, csrNonce, attestationSignature, attestationChallenge,
           attestationElements, dac, pai);
     }
   }
@@ -683,9 +683,9 @@ public class ChipDeviceController {
 
   /** Interface to implement custom operational credentials issuer (NOC chain generation). */
   public interface NOCChainIssuer {
-    /** 
-     * Notifies when operational cert generation is needed. 
-     * 
+    /**
+     * Notifies when operational cert generation is needed.
+     *
      * Once generated, implementor should populate the following fields on the ControllerParams object
      * and call setNOCChain():
      * - ipk
@@ -695,12 +695,12 @@ public class ChipDeviceController {
      * - adminSubject
      */
     void onNOCChainGenerationNeeded(
-        byte[] csrElements, 
-        byte[] csrNonce, 
-        byte[] attestationSignature, 
-        byte[] attestationChallenge, 
-        byte[] attestationElements, 
-        byte[] dac, 
+        byte[] csrElements,
+        byte[] csrNonce,
+        byte[] attestationSignature,
+        byte[] attestationChallenge,
+        byte[] attestationElements,
+        byte[] dac,
         byte[] pai);
   }
 
