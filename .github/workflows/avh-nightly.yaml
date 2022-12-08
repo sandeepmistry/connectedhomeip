@@ -22,4 +22,10 @@ on:
 
 jobs:
     arm_crosscompile:
-        uses: ./.github/workflows/examples-linux-arm.yaml
+        steps:
+            - name: Linux ARM Cross compile
+              uses: ./.github/workflows/examples-linux-arm.yaml
+            - name: Check examples
+              run: |
+                  ls -l out/linux-arm64-chip-tool-ipv6only-clang
+                  ls -l out/linux-arm64-light-rpc-ipv6only-clang
