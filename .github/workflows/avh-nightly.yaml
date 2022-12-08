@@ -25,6 +25,7 @@ jobs:
         uses: ./.github/workflows/examples-linux-arm.yaml
     test_examples:
         needs: arm_crosscompile
+        runs-on: ubuntu-latest
         steps:
             - name: Check examples
               run: |
