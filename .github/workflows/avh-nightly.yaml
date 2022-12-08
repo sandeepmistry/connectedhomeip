@@ -53,7 +53,10 @@ jobs:
                         --target linux-arm64-light-rpc-ipv6only-clang \
                         build \
                      "
-            - name: Check examples
-              run: |
-                  ls -l out/linux-arm64-chip-tool-ipv6only-clang
-                  ls -l out/linux-arm64-light-rpc-ipv6only-clang
+            - name: Upload built samples
+              uses: actions/upload-artifact@v3
+              with:
+                  name: arm_crosscompiled_samples
+                  path: |
+                      out/linux-arm64-chip-tool-ipv6only-clang/chip-tool
+                      out/linux-arm64-light-rpc-ipv6only-clang/chip-lighting-app
