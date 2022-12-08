@@ -22,6 +22,7 @@ on:
 
 jobs:
     arm_crosscompile:
+        runs-on: ubuntu-latest
         steps:
             - name: Linux ARM Cross compile
               uses: ./.github/workflows/examples-linux-arm.yaml
