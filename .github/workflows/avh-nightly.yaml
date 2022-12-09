@@ -47,23 +47,23 @@ jobs:
               timeout-minutes: 10
               run: scripts/build/gn_bootstrap.sh
 
-            - name: Build Samples
-              timeout-minutes: 45
-              run: |
-                  ./scripts/run_in_build_env.sh \
-                     "./scripts/build/build_examples.py \
-                        --target linux-arm64-chip-tool-ipv6only-clang \
-                        --target linux-arm64-light-rpc-ipv6only-clang \
-                        build \
-                     "
+            # - name: Build Samples
+            #   timeout-minutes: 45
+            #   run: |
+            #       ./scripts/run_in_build_env.sh \
+            #          "./scripts/build/build_examples.py \
+            #             --target linux-arm64-chip-tool-ipv6only-clang \
+            #             --target linux-arm64-light-rpc-ipv6only-clang \
+            #             build \
+            #          "
 
-            - name: Upload built samples
-              uses: actions/upload-artifact@v3
-              with:
-                  name: arm_crosscompiled_samples
-                  path: |
-                      out/linux-arm64-chip-tool-ipv6only-clang/chip-tool
-                      out/linux-arm64-light-rpc-ipv6only-clang/chip-lighting-app
+            # - name: Upload built samples
+            #   uses: actions/upload-artifact@v3
+            #   with:
+            #       name: arm_crosscompiled_samples
+            #       path: |
+            #           out/linux-arm64-chip-tool-ipv6only-clang/chip-tool
+            #           out/linux-arm64-light-rpc-ipv6only-clang/chip-lighting-app
 
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
@@ -74,14 +74,14 @@ jobs:
         needs: arm_crosscompile
 
         steps:
-            - uses: Wandalen/wretry.action@v1.0.36
-              name: Checkout
-              with:
-                  action: actions/checkout@v3
-                  with: |
-                      token: ${{ github.token }}
-                  attempt_limit: 3
-                  attempt_delay: 2000
+            # - uses: Wandalen/wretry.action@v1.0.36
+            #   name: Checkout
+            #   with:
+            #       action: actions/checkout@v3
+            #       with: |
+            #           token: ${{ github.token }}
+            #       attempt_limit: 3
+            #       attempt_delay: 2000
 
             - name: Downloads built samples
               uses: actions/download-artifact@v3
