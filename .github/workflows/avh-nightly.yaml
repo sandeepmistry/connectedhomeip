@@ -71,11 +71,19 @@ jobs:
 
         runs-on: ubuntu-latest
 
+        env:
+            AVH_API_TOKEN: ${{ secrets.AVH_API_TOKEN }}
+
         needs: arm_crosscompile
 
         steps:
-            - uses: Wandalen/wretry.action@v1.0.36
-              name: Checkout
+            - name: Install Linux dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y openvpn
+
+            - name: Checkout
+              uses: Wandalen/wretry.action@v1.0.36
               with:
                   action: actions/checkout@v3
                   with: |
@@ -83,11 +91,12 @@ jobs:
                   attempt_limit: 3
                   attempt_delay: 2000
 
-            - name: Downloads built samples
+            - name: Downloads Cross-compiled samples
               uses: actions/download-artifact@v3
               with:
-                name: arm_crosscompiled_samples
-                path: out
+                  name: arm_crosscompiled_samples
+                  path: out
                 
-            - name: Display structure of downloaded files
-              run: ls -R out
+            - name: Install Python dependencies
+              run: |
+                  pip3 install -r scripts/tests/avh/requirements.txt
