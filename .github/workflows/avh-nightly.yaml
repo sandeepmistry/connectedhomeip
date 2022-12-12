@@ -52,8 +52,8 @@ jobs:
               run: |
                   ./scripts/run_in_build_env.sh \
                      "./scripts/build/build_examples.py \
-                        --target linux-arm64-chip-tool-clang \
-                        --target linux-arm64-light-clang \
+                        --target linux-arm64-chip-tool-ipv6only-mbedtls-clang \
+                        --target linux-arm64-light-ipv6only-mbedtls-clang \
                         build \
                      "
 
