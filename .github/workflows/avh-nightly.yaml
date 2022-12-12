@@ -52,8 +52,8 @@ jobs:
               run: |
                   ./scripts/run_in_build_env.sh \
                      "./scripts/build/build_examples.py \
-                        --target linux-arm64-chip-tool \
-                        --target linux-arm64-light-rpc \
+                        --target linux-arm64-chip-tool-ipv6only-nodeps \
+                        --target linux-arm64-light-rpc-ipv6only-nodeps \
                         build \
                      "
 
@@ -62,8 +62,8 @@ jobs:
               with:
                   name: arm_crosscompiled_samples
                   path: |
-                      out/linux-arm64-chip-tool/chip-tool
-                      out/linux-arm64-light-rpc/chip-lighting-app
+                      out/linux-arm64-chip-tool-ipv6only-nodeps/chip-tool
+                      out/linux-arm64-light-rpc-ipv6only-nodeps/chip-lighting-app
 
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
