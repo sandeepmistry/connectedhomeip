@@ -52,8 +52,8 @@ jobs:
               run: |
                   ./scripts/run_in_build_env.sh \
                      "./scripts/build/build_examples.py \
-                        --target linux-arm64-chip-tool-ipv6only-clang \
-                        --target linux-arm64-light-ipv6only-clang \
+                        --target linux-arm64-chip-tool-ipv6only-mbedtls-clang \
+                        --target linux-arm64-light-ipv6only-mbedtls-clang \
                         build \
                      "
 
@@ -62,8 +62,8 @@ jobs:
               with:
                   name: arm_crosscompiled_samples
                   path: |
-                      out/linux-arm64-chip-tool-ipv6only-clang/chip-tool
-                      out/linux-arm64-light-ipv6only-clang/chip-lighting-app
+                      out/linux-arm64-chip-tool-ipv6only-mbedtls-clang/chip-tool
+                      out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app
 
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
