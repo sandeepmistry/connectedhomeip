@@ -15,6 +15,8 @@ class TestLightingApp(unittest.TestCase):
         print('set up')
         self.avh_client = AvhClient(os.environ['AVH_API_TOKEN'])
 
+        # TODO: delete instances (if applicable)
+
         self.chip_tool_instance = AvhInstance(
             self.avh_client,
             username='pi',
@@ -56,6 +58,8 @@ class TestLightingApp(unittest.TestCase):
 
         print('wait ...')
         time.sleep(90)
+
+        os.system('ip addr')
 
         print('ssh')
         self.chip_tool_ssh_client = self.chip_tool_instance.ssh()
