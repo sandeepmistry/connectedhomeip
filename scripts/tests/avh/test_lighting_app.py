@@ -57,9 +57,7 @@ class TestLightingApp(unittest.TestCase):
         self.vpn_subprocess = openvpn.connect(AVH_VPN_CONFIG_PATH)
 
         print('wait ...')
-        time.sleep(90)
-
-        os.system('ip addr')
+        time.sleep(120)
 
         print('ssh')
         self.chip_tool_ssh_client = self.chip_tool_instance.ssh()
