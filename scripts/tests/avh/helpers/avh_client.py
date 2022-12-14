@@ -5,9 +5,9 @@ from avh_api.api.arm_api import ArmApi as AvhApi
 class AvhClient:
     def __init__(self, api_token):
         avh_api_config = AvhApiConfiguration()
-        avh_api_client = AvhApiClient(avh_api_config)
+        self.avh_api_client = AvhApiClient(avh_api_config)
 
-        self.avh_api = AvhApi(avh_api_client)
+        self.avh_api = AvhApi(self.avh_api_client)
 
         avh_api_config.access_token = self.avh_api.v1_auth_login({
             "api_token": api_token

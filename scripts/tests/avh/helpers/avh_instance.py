@@ -4,10 +4,11 @@ import avh_api
 import paramiko
 
 class AvhInstance:
-    def __init__(self, avh_client, instance_id=None):
+    def __init__(self, avh_client, username=None, password=None):
         self.avh_client = avh_client
-        self.instance_id = instance_id
-        self.ssh_client = None
+        self.username = username
+        self.password = password
+        self.instance_id = None
 
     def create(self, name, flavor, os, os_version):
         self.instance_id = self.avh_client.create_instance(
@@ -17,6 +18,7 @@ class AvhInstance:
             osbuild=os
         )
 
+    def wait_for_state_on(self):
         # TODO: timeout
         while True:
             instance_state = self.avh_client.instance_state(self.instance_id)
@@ -28,7 +30,7 @@ class AvhInstance:
 
             time.sleep(0.1)
 
-    def ssh(self, username, password):
+    def ssh(self):
         instance_ip = self.avh_client.instance_ip(self.instance_id)
 
         self.ssh_client = paramiko.SSHClient()
@@ -36,15 +38,19 @@ class AvhInstance:
 
         self.ssh_client.connect(
             hostname=instance_ip,
-            username=username,
-            password=password
+            username=self.username,
+            password=self.password
         )
 
         return self.ssh_client
 
     def delete(self):
+        if self.ssh_client is not None:
+            self.ssh_client.close()
+
         self.avh_client.delete_instance(self.instance_id)
 
+    def wait_for_state_deleted(self):
         # TODO: timeout
         while True:
             try:
@@ -53,6 +59,3 @@ class AvhInstance:
                 break
 
             time.sleep(0.1)
-
-        if self.ssh_client is not None:
-            self.ssh_client.close()
