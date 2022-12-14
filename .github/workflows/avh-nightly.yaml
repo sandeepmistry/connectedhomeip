@@ -21,8 +21,8 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: ${{ github.head_ref || github.ref_name }} 
-    cancel-in-progress: ${{ github.workflow }}
+    group: ${{ github.workflow }}
+    cancel-in-progress: false
 
 jobs:
     arm_crosscompile:
