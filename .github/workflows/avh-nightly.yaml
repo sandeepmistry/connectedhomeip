@@ -20,6 +20,10 @@ on:
         - cron: "0 22 * * *"
     workflow_dispatch:
 
+concurrency:
+    group: ${{ github.head_ref || github.ref_name }} 
+    cancel-in-progress: ${{ github.workflow }}
+
 jobs:
     arm_crosscompile:
         name: Linux ARM Cross compile
@@ -100,3 +104,7 @@ jobs:
             - name: Install Python dependencies
               run: |
                   pip3 install -r scripts/tests/avh/requirements.txt
+
+            - name: Run end to end test
+              run: |
+                  python3 -m unittest scripts/tests/avh/test_lighting_app.py
