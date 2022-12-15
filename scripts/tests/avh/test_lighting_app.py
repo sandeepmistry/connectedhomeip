@@ -29,16 +29,16 @@ class TestLightingApp(unittest.TestCase):
             password='raspberry'
         )
 
-        print('creating instances ...')
+        print('creating instances', end=' ')
         self.chip_tool_instance.create(
-            name='chip-tool',
+            name='nightly-test-chip-tool',
             flavor='rpi4b',
             os='Ubuntu Server',
             os_version='22.04.1',
         )
 
         self.lighting_app_instance.create(
-            name='lighting-app',
+            name='nightly-test-lighting-app',
             flavor='rpi4b',
             os='Ubuntu Server',
             os_version='22.04.1',
@@ -46,7 +46,7 @@ class TestLightingApp(unittest.TestCase):
 
         self.chip_tool_instance.wait_for_state_on()
         self.lighting_app_instance.wait_for_state_on()
-        print('instance created.')
+        print('instances created.')
 
         print('saving vpn config')
         self.avh_client.save_vpn_config(AVH_VPN_CONFIG_PATH)
@@ -56,8 +56,10 @@ class TestLightingApp(unittest.TestCase):
         # mknod /dev/net/tun c 10 200
         self.vpn_subprocess = openvpn.connect(AVH_VPN_CONFIG_PATH)
 
-        print('wait ...')
-        time.sleep(120)
+        print('wait for OS boot', end=' ')
+        self.chip_tool_instance.wait_for_console_output('ubuntu login: ')
+        self.lighting_app_instance.wait_for_console_output('ubuntu login: ')
+        print('OS booted.')
 
         print('ssh')
         self.chip_tool_ssh_client = self.chip_tool_instance.ssh()

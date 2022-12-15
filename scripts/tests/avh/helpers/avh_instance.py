@@ -1,3 +1,4 @@
+import socket
 import time
 
 import avh_api
@@ -28,7 +29,20 @@ class AvhInstance:
             elif instance_state == 'error':
                 raise Exception('VM entered error state')
 
-            time.sleep(0.1)
+            print('.', end='')
+            time.sleep(1.0)
+
+    def wait_for_console_output(self, suffix):
+        # TODO: timeout
+        while True:
+            if self.console_log().endswith(suffix):
+                break
+
+            print('.', end='')
+            time.sleep(1.0)
+
+    def console_log(self):
+        return self.avh_client.instance_console_log(self.instance_id)
 
     def ssh(self):
         instance_ip = self.avh_client.instance_ip(self.instance_id)
@@ -36,11 +50,19 @@ class AvhInstance:
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        self.ssh_client.connect(
-            hostname=instance_ip,
-            username=self.username,
-            password=self.password
-        )
+        while True:
+            try:
+                self.ssh_client.connect(
+                    hostname=instance_ip,
+                    username=self.username,
+                    password=self.password,
+                    timeout=1.0
+                )
+
+                break
+            except:
+                print('.', end='')
+                time.sleep(1.0)
 
         return self.ssh_client
 
@@ -56,6 +78,8 @@ class AvhInstance:
             try:
                 instance_state = self.avh_client.instance_state(self.instance_id)
             except avh_api.exceptions.NotFoundException:
+                print('')
                 break
 
-            time.sleep(0.1)
+            print('.', end='')
+            time.sleep(1.0)
