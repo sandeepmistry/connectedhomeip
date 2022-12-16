@@ -4,6 +4,7 @@ import time
 import avh_api
 import paramiko
 
+
 class AvhInstance:
     def __init__(self, avh_client, username=None, password=None):
         self.avh_client = avh_client
@@ -13,10 +14,7 @@ class AvhInstance:
 
     def create(self, name, flavor, os, os_version):
         self.instance_id = self.avh_client.create_instance(
-            name=name,
-            flavor= flavor,
-            os=os_version,
-            osbuild=os
+            name=name, flavor=flavor, os=os_version, osbuild=os
         )
 
     def wait_for_state_on(self):
@@ -24,12 +22,12 @@ class AvhInstance:
         while True:
             instance_state = self.avh_client.instance_state(self.instance_id)
 
-            if instance_state == 'on':
+            if instance_state == "on":
                 break
-            elif instance_state == 'error':
-                raise Exception('VM entered error state')
+            elif instance_state == "error":
+                raise Exception("VM entered error state")
 
-            print('.', end='')
+            print(".", end="")
             time.sleep(1.0)
 
     def wait_for_console_output(self, suffix):
@@ -39,7 +37,7 @@ class AvhInstance:
                 if self.console_log().endswith(suffix):
                     break
 
-                print('.', end='')
+                print(".", end="")
                 time.sleep(1.0)
             time.sleep(2.0)
 
@@ -58,12 +56,12 @@ class AvhInstance:
                     hostname=instance_ip,
                     username=self.username,
                     password=self.password,
-                    timeout=1.0
+                    timeout=1.0,
                 )
 
                 break
             except:
-                print('.', end='')
+                print(".", end="")
                 time.sleep(1.0)
 
         return self.ssh_client
@@ -80,8 +78,8 @@ class AvhInstance:
             try:
                 instance_state = self.avh_client.instance_state(self.instance_id)
             except avh_api.exceptions.NotFoundException:
-                print('')
+                print("")
                 break
 
-            print('.', end='')
+            print(".", end="")
             time.sleep(1.0)

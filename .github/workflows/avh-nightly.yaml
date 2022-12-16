@@ -100,7 +100,7 @@ jobs:
               with:
                   name: arm_crosscompiled_samples
                   path: out
-                
+
             - name: Install Python dependencies
               run: |
                   pip3 install -r scripts/tests/avh/requirements.txt
