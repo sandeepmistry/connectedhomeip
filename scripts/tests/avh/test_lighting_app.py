@@ -76,38 +76,44 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_ssh_client.exec_command('chmod +x chip-tool')
         self.lighting_app_ssh_client.exec_command('chmod +x chip-lighting-app')
 
-
-        # sudo sysctl -w net.ipv6.conf.eth0.disable_ipv6=1
+        # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
+        # disable IPv6 on the Ethernet interface
+        # patch and restart wpa_supplication DBus
+        self.lighting_app_ssh_client.exec_command('sudo nmcli connection delete Arm')
+        self.lighting_app_ssh_client.exec_command('sudo nmcli dev set wlan0 managed no')
+        # self.lighting_app_ssh_client.exec_command('sudo sysctl -w net.ipv6.conf.eth0.disable_ipv6=1')
+        self.lighting_app_ssh_client.exec_command('sudo sed -i "s/wpa_supplicant -u -s -O/wpa_supplicant -u -s -i wlan0 -O/i" /etc/systemd/system/dbus-fi.w1.wpa_supplicant1.service')
+        self.lighting_app_ssh_client.exec_command('sudo systemctl restart wpa_supplicant.service')
+        self.lighting_app_ssh_client.exec_command('sudo systemctl daemon-reload')
 
     def test_commissioning_and_control(self):
         lighting_app_shell_channel = self.lighting_app_ssh_client.invoke_shell()
-        lighting_app_shell_channel.send('./chip-lighting-app\n')
+        lighting_app_shell_channel.send('./chip-lighting-app --wifi\n')
         time.sleep(2.0)
-        lighting_app_start_output = lighting_app_shell_channel.recv(999999).decode()
+        lighting_app_start_output = lighting_app_shell_channel.recv(999999)
 
-        self.assertIn('Server Listening...', lighting_app_start_output)
+        self.assertIn(b'Server Listening...', lighting_app_start_output)
 
+        _, stdout, _ = self.chip_tool_ssh_client.exec_command('./chip-tool pairing ble-wifi 17 Arm password 20202021 3840')
+        chip_tool_pairing_ouput = stdout.read()
 
-        _, stdout, _ = self.chip_tool_ssh_client.exec_command('./chip-tool pairing onnetwork-long 0x11 20202021 3840')
-        chip_tool_pairing_ouput = stdout.read().decode()
-
-        self.assertIn('Device commissioning completed with success', chip_tool_pairing_ouput)
+        self.assertIn(b'Device commissioning completed with success', chip_tool_pairing_ouput)
 
         time.sleep(1.0)
-        lighting_app_commissioning_output = lighting_app_shell_channel.recv(999999).decode()
-        self.assertIn('Commissioning completed successfully', lighting_app_commissioning_output)
+        lighting_app_commissioning_output = lighting_app_shell_channel.recv(999999)
+        self.assertIn(b'Commissioning completed successfully', lighting_app_commissioning_output)
 
         _, _, _ = self.chip_tool_ssh_client.exec_command('./chip-tool onoff on 17 1')
 
         time.sleep(1.0)
-        lighting_app_on_output = lighting_app_shell_channel.recv(999999).decode()
-        self.assertIn('Toggle on/off from 0 to 1', lighting_app_on_output)
+        lighting_app_on_output = lighting_app_shell_channel.recv(999999)
+        self.assertIn(b'Toggle on/off from 0 to 1', lighting_app_on_output)
 
         _, _, _ = self.chip_tool_ssh_client.exec_command('./chip-tool onoff off 17 1')
 
         time.sleep(1.0)
-        lighting_app_off_output = lighting_app_shell_channel.recv(999999).decode()
-        self.assertIn('oggle on/off from 1 to 0', lighting_app_off_output)
+        lighting_app_off_output = lighting_app_shell_channel.recv(999999)
+        self.assertIn(b'Toggle on/off from 1 to 0', lighting_app_off_output)
 
         lighting_app_shell_channel.close()
 

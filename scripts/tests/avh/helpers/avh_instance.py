@@ -34,12 +34,14 @@ class AvhInstance:
 
     def wait_for_console_output(self, suffix):
         # TODO: timeout
-        while True:
-            if self.console_log().endswith(suffix):
-                break
+        for i in range(2):
+            while True:
+                if self.console_log().endswith(suffix):
+                    break
 
-            print('.', end='')
-            time.sleep(1.0)
+                print('.', end='')
+                time.sleep(1.0)
+            time.sleep(2.0)
 
     def console_log(self):
         return self.avh_client.instance_console_log(self.instance_id)
