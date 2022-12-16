@@ -120,9 +120,12 @@ class TestLightingApp(unittest.TestCase):
     def tearDown(self):
         print('tear down')
 
-        # print('disconnect vpn')
-        # self.vpn_subprocess.send_signal(signal.SIGINT)
-        # self.vpn_subprocess.wait(timeout=0.25)
+        print('disconnect vpn')
+        try:
+            self.vpn_subprocess.send_signal(signal.SIGINT)
+            self.vpn_subprocess.wait(timeout=0.25)
+        except:
+            pass
 
         print('deleting instances ...')
         self.chip_tool_instance.delete()
