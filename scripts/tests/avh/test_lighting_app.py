@@ -49,8 +49,9 @@ class TestLightingApp(unittest.TestCase):
             application_binary_path="out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app",
         )
 
-    def test_commissioning_and_control(self):
         print("creating instances ...")
+        self.addCleanup(self.cleanupInstances)
+
         self.chip_tool_instance.create()
         self.lighting_app_instance.create()
 
@@ -58,6 +59,7 @@ class TestLightingApp(unittest.TestCase):
         self.lighting_app_instance.wait_for_state_on()
 
         print("connecting vpn ...")
+        self.addCleanup(self.cleanupVpn)
         self.avh_utils.connect_vpn()
 
         print("waiting for OS boot ...", end="")
@@ -71,6 +73,7 @@ class TestLightingApp(unittest.TestCase):
         print("configuring systems ...")
         self.lighting_app_instance.configure_system()
 
+    def test_commissioning_and_control(self):
         print("starting chip-lighting-app ...")
         self.lighting_app_instance.start_application()
 
@@ -127,10 +130,11 @@ class TestLightingApp(unittest.TestCase):
         )
         self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
 
-    def tearDown(self):
+    def cleanupVpn(self):
         print("disconnecting vpn")
         self.avh_utils.disconnect_vpn()
 
+    def cleanupInstances(self):
         print("deleting instances ...")
         self.chip_tool_instance.delete()
         self.lighting_app_instance.delete()
