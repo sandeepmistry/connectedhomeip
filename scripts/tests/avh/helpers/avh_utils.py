@@ -36,7 +36,7 @@ class AvhUtils:
         if self.openvpn_subprocess is not None:
             try:
                 self.vpn_subprocess.send_signal(signal.SIGINT)
-                self.vpn_subprocess.wait(timeout=0.25)
+                self.vpn_subprocess.wait(timeout=5.0)
             except:
                 pass
 
