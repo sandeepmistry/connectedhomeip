@@ -12,26 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 from .avh_instance import AvhInstance
+
+APPLICATION_BINARY = "chip-lighting-app"
 
 
 class AvhLightingAppInstance(AvhInstance):
-    def __init__(self, avh_client, name):
+    def __init__(self, avh_client, name, application_binary_path):
         super().__init__(avh_client, name)
 
+        self.application_binary_path = application_binary_path
         self.shell_channel = None
 
     def upload_application_binary(self):
         ssh_client = super().ssh_client()
 
         stfp_client = ssh_client.open_sftp()
-        stfp_client.put(
-            "out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app",
-            "chip-lighting-app",
-        )
+        stfp_client.put(self.application_binary_path, APPLICATION_BINARY)
         stfp_client.close()
 
-        ssh_client.exec_command("chmod +x chip-lighting-app")
+        ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
 
     def configure_system(self):
         ssh_client = super().ssh_client()
@@ -51,7 +53,16 @@ class AvhLightingAppInstance(AvhInstance):
         ssh_client = super().ssh_client()
 
         self.shell_channel = ssh_client.invoke_shell()
-        self.shell_channel.send("./chip-lighting-app --wifi\n")
+        self.shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
 
     def get_application_output(self):
-        return self.shell_channel.recv(999999)
+        # TODO: timeout
+        while not self.shell_channel.recv_ready():
+            time.sleep(1.0)
+
+        output = b""
+        while self.shell_channel.recv_ready():
+            output += self.shell_channel.recv(1024)
+            time.sleep(0.01)
+
+        return output

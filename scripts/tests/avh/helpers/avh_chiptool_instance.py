@@ -14,27 +14,29 @@
 
 from .avh_instance import AvhInstance
 
+APPLICATION_BINARY = "chip-tool"
+
 
 class AvhChiptoolInstance(AvhInstance):
-    def __init__(self, avh_client, name):
+    def __init__(self, avh_client, name, application_binary_path):
         super().__init__(avh_client, name)
+
+        self.application_binary_path = application_binary_path
 
     def upload_application_binary(self):
         ssh_client = super().ssh_client()
 
         stfp_client = ssh_client.open_sftp()
-        stfp_client.put(
-            "out/linux-arm64-chip-tool-ipv6only-mbedtls-clang/chip-tool", "chip-tool"
-        )
+        stfp_client.put(self.application_binary_path, APPLICATION_BINARY)
         stfp_client.close()
 
-        ssh_client.exec_command("chmod +x chip-tool")
+        ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         ssh_client = super().ssh_client()
 
         _, stdout, _ = ssh_client.exec_command(
-            f"./chip-tool pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"
+            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"
         )
 
         return stdout.read()
@@ -42,13 +44,17 @@ class AvhChiptoolInstance(AvhInstance):
     def on(self, node_id):
         ssh_client = super().ssh_client()
 
-        _, stdout, _ = ssh_client.exec_command(f"./chip-tool onoff on {node_id} 1")
+        _, stdout, _ = ssh_client.exec_command(
+            f"./{APPLICATION_BINARY} onoff on {node_id} 1"
+        )
 
         return stdout.read()
 
     def off(self, node_id):
         ssh_client = super().ssh_client()
 
-        _, stdout, _ = ssh_client.exec_command(f"./chip-tool onoff off {node_id} 1")
+        _, stdout, _ = ssh_client.exec_command(
+            f"./{APPLICATION_BINARY} onoff off {node_id} 1"
+        )
 
         return stdout.read()

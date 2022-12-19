@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import time
 
 import unittest
 
@@ -41,11 +40,13 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "chip-tool",
+            application_binary_path="out/linux-arm64-chip-tool-ipv6only-mbedtls-clang/chip-tool",
         )
 
         self.lighting_app_instance = AvhLightingAppInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "lighting-app",
+            application_binary_path="out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app",
         )
 
     def test_commissioning_and_control(self):
@@ -75,12 +76,10 @@ class TestLightingApp(unittest.TestCase):
         print("starting chip-lighting-app ...")
         self.lighting_app_instance.start_application()
 
-        time.sleep(2.0)
         lighting_app_start_output = self.lighting_app_instance.get_application_output()
-
-        with open("/tmp/avh_lighting_app.start.output.txt", "wb") as out:
-            out.write(lighting_app_start_output)
-
+        self.save_output(
+            "/tmp/avh_lighting_app.start.output.txt", lighting_app_start_output
+        )
         self.assertIn(b"Server Listening...", lighting_app_start_output)
 
         print("Commissioning with chip-tool ...")
@@ -100,7 +99,6 @@ class TestLightingApp(unittest.TestCase):
             chip_tool_commissioning_output,
         )
 
-        time.sleep(1.0)
         lighting_app_commissioning_output = (
             self.lighting_app_instance.get_application_output()
         )
@@ -117,17 +115,13 @@ class TestLightingApp(unittest.TestCase):
         chip_tool_on_output = self.chip_tool_instance.on(TEST_NODE_ID)
         self.save_output("/tmp/avh_chiptool.on.output.txt", chip_tool_on_output)
 
-        time.sleep(1.0)
         lighting_app_on_output = self.lighting_app_instance.get_application_output()
-
-        with open("/tmp/avh_lighting_app.on.output.txt", "wb") as out:
-            out.write(lighting_app_on_output)
-
+        self.save_output("/tmp/avh_lighting_app.on.output.txt", lighting_app_on_output)
         self.assertIn(b"Toggle on/off from 0 to 1", lighting_app_on_output)
 
         print("turning light off with chip-tool ...")
         chip_tool_off_output = self.chip_tool_instance.off(TEST_NODE_ID)
-        time.sleep(1.0)
+        self.save_output("/tmp/avh_chiptool.off.output.txt", chip_tool_on_output)
         lighting_app_off_output = self.lighting_app_instance.get_application_output()
 
         self.save_output(
