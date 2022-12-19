@@ -64,7 +64,6 @@ class AvhInstance:
             elif instance_state == "error":
                 raise Exception("VM entered error state")
 
-            print(".", end="")
             time.sleep(1.0)
 
     def wait_for_os_boot(self, suffix=DEFAULT_OS_LOGIN_PROMPT):
@@ -76,7 +75,6 @@ class AvhInstance:
                 ):
                     break
 
-                print(".", end="")
                 time.sleep(1.0)
             time.sleep(2.0)
 
@@ -103,7 +101,6 @@ class AvhInstance:
 
                 break
             except:
-                print(".", end="")
                 time.sleep(1.0)
 
         return self.ssh_client
@@ -126,10 +123,8 @@ class AvhInstance:
             try:
                 instance_state = self.avh_client.instance_state(self.instance_id)
             except avh_api.exceptions.NotFoundException:
-                print("")
                 break
 
-            print(".", end="")
             time.sleep(1.0)
 
         self.instance_id = None

@@ -50,21 +50,19 @@ class TestLightingApp(unittest.TestCase):
         )
 
     def test_commissioning_and_control(self):
-        print("creating instances ...", end="")
+        print("creating instances ...")
         self.chip_tool_instance.create()
         self.lighting_app_instance.create()
 
         self.chip_tool_instance.wait_for_state_on()
         self.lighting_app_instance.wait_for_state_on()
-        print(" instances created.")
 
-        print("connect vpn")
+        print("connecting vpn ...")
         self.avh_utils.connect_vpn()
 
-        print("wait for OS boot ...", end="")
+        print("waiting for OS boot ...", end="")
         self.chip_tool_instance.wait_for_os_boot()
         self.lighting_app_instance.wait_for_os_boot()
-        print(" OS booted.")
 
         print("uploading application binaries ...")
         self.chip_tool_instance.upload_application_binary()
@@ -82,7 +80,7 @@ class TestLightingApp(unittest.TestCase):
         )
         self.assertIn(b"Server Listening...", lighting_app_start_output)
 
-        print("Commissioning with chip-tool ...")
+        print("commissioning with chip-tool ...")
         chip_tool_commissioning_output = self.chip_tool_instance.pairing_ble_wifi(
             TEST_NODE_ID,
             TEST_WIFI_SSID,
@@ -130,18 +128,15 @@ class TestLightingApp(unittest.TestCase):
         self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
 
     def tearDown(self):
-        print("tear down")
-
-        print("disconnect vpn")
+        print("disconnecting vpn")
         self.avh_utils.disconnect_vpn()
 
-        print("deleting instances ...", end="")
+        print("deleting instances ...")
         self.chip_tool_instance.delete()
         self.lighting_app_instance.delete()
 
         self.chip_tool_instance.wait_for_state_deleted()
         self.lighting_app_instance.wait_for_state_deleted()
-        print(" instances deleted.")
 
     def save_output(self, filename, output):
         with open(filename, "wb") as out:
