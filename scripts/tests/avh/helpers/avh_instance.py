@@ -18,17 +18,40 @@ import time
 import avh_api
 import paramiko
 
+DEFAULT_INSTANCE_FLAVOR = "rpi4b"
+DEFAULT_INSTANCE_OS = "Ubuntu Server"
+DEFAULT_INSTANCE_OS_VERSION = "22.04.1"
+
+DEFAULT_OS_LOGIN_PROMPT = "ubuntu login: "
+
+DEFAULT_SSH_USERNAME = "pi"
+DEFAULT_SSH_PASSWORD = "raspberry"
+
 
 class AvhInstance:
-    def __init__(self, avh_client, username=None, password=None):
+    def __init__(
+        self,
+        avh_client,
+        name,
+        flavor=DEFAULT_INSTANCE_FLAVOR,
+        os=DEFAULT_INSTANCE_OS,
+        os_version=DEFAULT_INSTANCE_OS_VERSION,
+        username=DEFAULT_SSH_USERNAME,
+        password=DEFAULT_SSH_PASSWORD,
+    ):
         self.avh_client = avh_client
+        self.name = name
+        self.flavor = flavor
+        self.os = os
+        self.os_version = os_version
         self.username = username
         self.password = password
         self.instance_id = None
+        self.ssh_client = None
 
-    def create(self, name, flavor, os, os_version):
+    def create(self):
         self.instance_id = self.avh_client.create_instance(
-            name=name, flavor=flavor, os=os_version, osbuild=os
+            name=self.name, flavor=self.flavor, os=self.os_version, osbuild=self.os
         )
 
     def wait_for_state_on(self):
@@ -44,26 +67,31 @@ class AvhInstance:
             print(".", end="")
             time.sleep(1.0)
 
-    def wait_for_console_output(self, suffix):
+    def wait_for_os_boot(self, suffix=DEFAULT_OS_LOGIN_PROMPT):
         # TODO: timeout
         for i in range(2):
             while True:
-                if self.console_log().endswith(suffix):
+                if self.avh_client.instance_console_log(self.instance_id).endswith(
+                    suffix
+                ):
                     break
 
                 print(".", end="")
                 time.sleep(1.0)
             time.sleep(2.0)
 
-    def console_log(self):
-        return self.avh_client.instance_console_log(self.instance_id)
+            self.ssh_client = None
 
-    def ssh(self):
+    def ssh_client(self):
+        if self.ssh_client is not None:
+            return self.ssh_client
+
         instance_ip = self.avh_client.instance_ip(self.instance_id)
 
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+        # TODO: timeout
         while True:
             try:
                 self.ssh_client.connect(
@@ -84,9 +112,15 @@ class AvhInstance:
         if self.ssh_client is not None:
             self.ssh_client.close()
 
-        self.avh_client.delete_instance(self.instance_id)
+            self.ssh_client = None
+
+        if self.instance_id is not None:
+            self.avh_client.delete_instance(self.instance_id)
 
     def wait_for_state_deleted(self):
+        if self.instance_id is None:
+            return
+
         # TODO: timeout
         while True:
             try:
@@ -97,3 +131,5 @@ class AvhInstance:
 
             print(".", end="")
             time.sleep(1.0)
+
+        self.instance_id = None
