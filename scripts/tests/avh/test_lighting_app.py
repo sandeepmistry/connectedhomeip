@@ -1,20 +1,33 @@
+# Copyright (c) 2022 Project CHIP Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
-import signal
 import time
 
 import unittest
 
 from .helpers.avh_client import AvhClient
+from .helpers.avh_utils import AvhUtils
 from .helpers.avh_instance import AvhInstance
-from .helpers import openvpn
-
-AVH_VPN_CONFIG_PATH = "/tmp/avh.ovpn"
 
 INSTANCE_NAME_PREFIX = "nightly-test-"
 
 INSTANCE_FLAVOR = "rpi4b"
 INSTANCE_OS = "Ubuntu Server"
 INSTANCE_OS_VERSION = "22.04.1"
+
+OS_LOGIN_PROMPT = "ubuntu login: "
 
 SSH_USERNAME = "pi"
 SSH_PASSWORD = "raspberry"
@@ -23,6 +36,7 @@ SSH_PASSWORD = "raspberry"
 class TestLightingApp(unittest.TestCase):
     def setUp(self):
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
+        self.avh_utils = AvhUtils(self.avh_client)
 
         # TODO: delete instances (if applicable)
 
@@ -53,17 +67,12 @@ class TestLightingApp(unittest.TestCase):
         self.lighting_app_instance.wait_for_state_on()
         print(" instances created.")
 
-        print("saving vpn config")
-        self.avh_client.save_vpn_config(AVH_VPN_CONFIG_PATH)
-
         print("connect vpn")
-        # mkdir -p /dev/net
-        # mknod /dev/net/tun c 10 200
-        self.vpn_subprocess = openvpn.connect(AVH_VPN_CONFIG_PATH)
+        self.avh_utils.connect_vpn()
 
         print("wait for OS boot ...", end="")
-        self.chip_tool_instance.wait_for_console_output("ubuntu login: ")
-        self.lighting_app_instance.wait_for_console_output("ubuntu login: ")
+        self.chip_tool_instance.wait_for_console_output(OS_LOGIN_PROMPT)
+        self.lighting_app_instance.wait_for_console_output(OS_LOGIN_PROMPT)
         print(" OS booted.")
 
         print("ssh ...", end="")
@@ -182,11 +191,7 @@ class TestLightingApp(unittest.TestCase):
         print("tear down")
 
         print("disconnect vpn")
-        try:
-            self.vpn_subprocess.send_signal(signal.SIGINT)
-            self.vpn_subprocess.wait(timeout=0.25)
-        except:
-            pass
+        self.avh_utils.disconnect_vpn()
 
         print("deleting instances ...", end="")
         self.chip_tool_instance.delete()
