@@ -62,7 +62,7 @@ class TestLightingApp(unittest.TestCase):
         self.addCleanup(self.cleanupVpn)
         self.avh_utils.connect_vpn()
 
-        print("waiting for OS boot ...", end="")
+        print("waiting for OS boot ...")
         self.chip_tool_instance.wait_for_os_boot()
         self.lighting_app_instance.wait_for_os_boot()
 
@@ -78,9 +78,6 @@ class TestLightingApp(unittest.TestCase):
         self.lighting_app_instance.start_application()
 
         lighting_app_start_output = self.lighting_app_instance.get_application_output()
-        self.save_output(
-            "/tmp/avh_lighting_app.start.output.txt", lighting_app_start_output
-        )
         self.assertIn(b"Server Listening...", lighting_app_start_output)
 
         print("commissioning with chip-tool ...")
@@ -91,9 +88,6 @@ class TestLightingApp(unittest.TestCase):
             TEST_PIN_CODE,
             TEST_DISCRIMINATOR,
         )
-        self.save_output(
-            "/tmp/avh_chiptool.commissioning.output.txt", chip_tool_commissioning_output
-        )
 
         self.assertIn(
             b"Device commissioning completed with success",
@@ -103,10 +97,6 @@ class TestLightingApp(unittest.TestCase):
         lighting_app_commissioning_output = (
             self.lighting_app_instance.get_application_output()
         )
-        self.save_output(
-            "/tmp/avh_lighting_app.commissioning.output.txt",
-            lighting_app_commissioning_output,
-        )
 
         self.assertIn(
             b"Commissioning completed successfully", lighting_app_commissioning_output
@@ -114,20 +104,14 @@ class TestLightingApp(unittest.TestCase):
 
         print("turning light on with chip-tool ...")
         chip_tool_on_output = self.chip_tool_instance.on(TEST_NODE_ID)
-        self.save_output("/tmp/avh_chiptool.on.output.txt", chip_tool_on_output)
 
         lighting_app_on_output = self.lighting_app_instance.get_application_output()
-        self.save_output("/tmp/avh_lighting_app.on.output.txt", lighting_app_on_output)
         self.assertIn(b"Toggle on/off from 0 to 1", lighting_app_on_output)
 
         print("turning light off with chip-tool ...")
         chip_tool_off_output = self.chip_tool_instance.off(TEST_NODE_ID)
-        self.save_output("/tmp/avh_chiptool.off.output.txt", chip_tool_on_output)
-        lighting_app_off_output = self.lighting_app_instance.get_application_output()
 
-        self.save_output(
-            "/tmp/avh_lighting_app.off.output.txt", lighting_app_off_output
-        )
+        lighting_app_off_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
 
     def cleanupVpn(self):
@@ -141,10 +125,6 @@ class TestLightingApp(unittest.TestCase):
 
         self.chip_tool_instance.wait_for_state_deleted()
         self.lighting_app_instance.wait_for_state_deleted()
-
-    def save_output(self, filename, output):
-        with open(filename, "wb") as out:
-            out.write(output)
 
 
 if __name__ == "__main__":

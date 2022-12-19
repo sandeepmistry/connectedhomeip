@@ -108,10 +108,3 @@ jobs:
             - name: Run end to end test
               run: |
                   python3 -u -m unittest scripts/tests/avh/test_lighting_app.py
-
-            - name: Upload end to end test logs
-              uses: actions/upload-artifact@v3
-              with:
-                  name: avh_test_logs
-                  path: |
-                      /tmp/avh*.output.txt
