@@ -62,7 +62,11 @@ class AvhLightingAppInstance(AvhInstance):
 
         output = b""
         while self.shell_channel.recv_ready():
-            output += self.shell_channel.recv(1024 * 1024)
-            time.sleep(0.01)
+            data = self.shell_channel.recv(1024 * 1024)
+            if len(data) == 0:
+                break
+
+            output += data
+            time.sleep(0.25)
 
         return output
