@@ -47,7 +47,7 @@ class AvhClient:
         return str(self.avh_api.v1_get_instance_state(instance_id))
 
     def instance_console_log(self, instance_id):
-        return str(self.avh_api.v1_get_instance_console_log(instance_id))
+        return self.avh_api.v1_get_instance_console_log(instance_id).encode("utf-8")
 
     def instance_ip(self, instance_id):
         return self.avh_api.v1_get_instance(instance_id)["wifi_ip"]

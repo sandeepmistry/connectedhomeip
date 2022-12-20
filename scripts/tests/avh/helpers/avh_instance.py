@@ -22,7 +22,9 @@ DEFAULT_INSTANCE_FLAVOR = "rpi4b"
 DEFAULT_INSTANCE_OS = "Ubuntu Server"
 DEFAULT_INSTANCE_OS_VERSION = "22.04.1"
 
-DEFAULT_OS_LOGIN_PROMPT = "ubuntu login: "
+DEFAULT_OS_BOOTED_OUTPUT = (
+    b"[\x1b[0;32m  OK  \x1b[0m] Reached target \x1b[0;1;39mCloud-init target\x1b[0m."
+)
 
 DEFAULT_SSH_USERNAME = "pi"
 DEFAULT_SSH_PASSWORD = "raspberry"
@@ -71,22 +73,20 @@ class AvhInstance:
 
             time.sleep(1.0)
 
-    def wait_for_os_boot(self, suffix=DEFAULT_OS_LOGIN_PROMPT, timeout=180):
+    def wait_for_os_boot(self, booted_output=DEFAULT_OS_BOOTED_OUTPUT, timeout=180):
         start_time = time.monotonic()
 
-        for i in range(2):
-            while True:
-                if self.avh_client.instance_console_log(self.instance_id).endswith(
-                    suffix
-                ):
-                    break
-                elif (time.monotonic() - start_time) > timeout:
-                    raise Exception(
-                        f"Timedout waiting for OS to boot for instance id {self.instance_id}"
-                    )
+        while True:
+            console_log = self.avh_client.instance_console_log(self.instance_id)
 
-                time.sleep(1.0)
-            time.sleep(2.0)
+            if booted_output in console_log:
+                break
+            elif (time.monotonic() - start_time) > timeout:
+                raise Exception(
+                    f"Timedout waiting for OS to boot for instance id {self.instance_id}"
+                )
+
+            time.sleep(1.0)
 
     def ssh_client(self, timeout=60):
         if self.ssh_client is not None:
