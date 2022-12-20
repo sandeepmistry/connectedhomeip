@@ -55,12 +55,16 @@ class AvhLightingAppInstance(AvhInstance):
         self.shell_channel = ssh_client.invoke_shell()
         self.shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
 
-    def get_application_output(self):
-        # TODO: timeout
+    def get_application_output(self, timeout=30):
+        start_time = time.monotonic()
+        output = b""
+
         while not self.shell_channel.recv_ready():
+            if (time.monotonic() - start_time) > timeout:
+                break
+
             time.sleep(1.0)
 
-        output = b""
         while self.shell_channel.recv_ready():
             data = self.shell_channel.recv(1024 * 1024)
             if len(data) == 0:

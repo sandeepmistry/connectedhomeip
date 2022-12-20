@@ -54,8 +54,9 @@ class AvhInstance:
             name=self.name, flavor=self.flavor, os=self.os_version, osbuild=self.os
         )
 
-    def wait_for_state_on(self):
-        # TODO: timeout
+    def wait_for_state_on(self, timeout=120):
+        start_time = time.monotonic()
+
         while True:
             instance_state = self.avh_client.instance_state(self.instance_id)
 
@@ -63,24 +64,31 @@ class AvhInstance:
                 break
             elif instance_state == "error":
                 raise Exception("VM entered error state")
+            elif (time.monotonic() - start_time) > timeout:
+                raise Exception(
+                    f"Timedout waiting for state 'on' for instance id {self.instance_id}"
+                )
 
             time.sleep(1.0)
 
-    def wait_for_os_boot(self, suffix=DEFAULT_OS_LOGIN_PROMPT):
-        # TODO: timeout
+    def wait_for_os_boot(self, suffix=DEFAULT_OS_LOGIN_PROMPT, timeout=180):
+        start_time = time.monotonic()
+
         for i in range(2):
             while True:
                 if self.avh_client.instance_console_log(self.instance_id).endswith(
                     suffix
                 ):
                     break
+                elif (time.monotonic() - start_time) > timeout:
+                    raise Exception(
+                        f"Timedout waiting for OS to boot for instance id {self.instance_id}"
+                    )
 
                 time.sleep(1.0)
             time.sleep(2.0)
 
-            self.ssh_client = None
-
-    def ssh_client(self):
+    def ssh_client(self, timeout=60):
         if self.ssh_client is not None:
             return self.ssh_client
 
@@ -89,7 +97,8 @@ class AvhInstance:
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # TODO: timeout
+        start_time = time.monotonic()
+
         while True:
             try:
                 self.ssh_client.connect(
@@ -103,6 +112,11 @@ class AvhInstance:
             except:
                 time.sleep(1.0)
 
+            if (time.monotonic() - start_time) > timeout:
+                raise Exception(
+                    f"Timedout waiting for SSH connection for instance id {self.instance_id} with IP {instance_ip}"
+                )
+
         return self.ssh_client
 
     def delete(self):
@@ -114,16 +128,22 @@ class AvhInstance:
         if self.instance_id is not None:
             self.avh_client.delete_instance(self.instance_id)
 
-    def wait_for_state_deleted(self):
+    def wait_for_state_deleted(self, timeout=60):
         if self.instance_id is None:
             return
 
-        # TODO: timeout
+        start_time = time.monotonic()
+
         while True:
             try:
                 instance_state = self.avh_client.instance_state(self.instance_id)
             except avh_api.exceptions.NotFoundException:
                 break
+
+            if (time.monotonic() - start_time) > timeout:
+                raise Exception(
+                    f"Timedout waiting for instance id {self.instance_id} to be deleted"
+                )
 
             time.sleep(1.0)
 
