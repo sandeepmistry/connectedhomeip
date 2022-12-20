@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
-
+import sys
 import unittest
 
 from .helpers.avh_client import AvhClient
@@ -32,6 +33,10 @@ TEST_DISCRIMINATOR = 3840
 
 class TestLightingApp(unittest.TestCase):
     def setUp(self):
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.StreamHandler(sys.stdout))
+
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
         self.avh_utils = AvhUtils(self.avh_client)
 
@@ -49,7 +54,7 @@ class TestLightingApp(unittest.TestCase):
             application_binary_path="out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app",
         )
 
-        print("creating instances ...")
+        self.logger.info("creating instances ...")
         self.addCleanup(self.cleanupInstances)
 
         self.chip_tool_instance.create()
@@ -58,29 +63,29 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_instance.wait_for_state_on()
         self.lighting_app_instance.wait_for_state_on()
 
-        print("connecting vpn ...")
+        self.logger.info("connecting vpn ...")
         self.addCleanup(self.cleanupVpn)
         self.avh_utils.connect_vpn()
 
-        print("waiting for OS boot ...")
+        self.logger.info("waiting for OS to boot ...")
         self.chip_tool_instance.wait_for_os_boot()
         self.lighting_app_instance.wait_for_os_boot()
 
-        print("uploading application binaries ...")
+        self.logger.info("uploading application binaries ...")
         self.chip_tool_instance.upload_application_binary()
         self.lighting_app_instance.upload_application_binary()
 
-        print("configuring systems ...")
+        self.logger.info("configuring systems ...")
         self.lighting_app_instance.configure_system()
 
     def test_commissioning_and_control(self):
-        print("starting chip-lighting-app ...")
+        self.logger.info("starting chip-lighting-app ...")
         self.lighting_app_instance.start_application()
 
         lighting_app_start_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Server Listening...", lighting_app_start_output)
 
-        print("commissioning with chip-tool ...")
+        self.logger.info("commissioning with chip-tool ...")
         chip_tool_commissioning_output = self.chip_tool_instance.pairing_ble_wifi(
             TEST_NODE_ID,
             TEST_WIFI_SSID,
@@ -102,24 +107,24 @@ class TestLightingApp(unittest.TestCase):
             b"Commissioning completed successfully", lighting_app_commissioning_output
         )
 
-        print("turning light on with chip-tool ...")
+        self.logger.info("turning light on with chip-tool ...")
         chip_tool_on_output = self.chip_tool_instance.on(TEST_NODE_ID)
 
         lighting_app_on_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Toggle on/off from 0 to 1", lighting_app_on_output)
 
-        print("turning light off with chip-tool ...")
+        self.logger.info("turning light off with chip-tool ...")
         chip_tool_off_output = self.chip_tool_instance.off(TEST_NODE_ID)
 
         lighting_app_off_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
 
     def cleanupVpn(self):
-        print("disconnecting vpn")
+        self.logger.info("disconnecting vpn")
         self.avh_utils.disconnect_vpn()
 
     def cleanupInstances(self):
-        print("deleting instances ...")
+        self.logger.info("deleting instances ...")
         self.chip_tool_instance.delete()
         self.lighting_app_instance.delete()
 
