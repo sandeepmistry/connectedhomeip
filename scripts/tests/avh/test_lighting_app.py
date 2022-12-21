@@ -63,6 +63,7 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_instance.wait_for_state_on()
         self.lighting_app_instance.wait_for_state_on()
 
+        # VPN must be connected after instances are started
         self.logger.info("connecting vpn ...")
         self.addCleanup(self.cleanupVpn)
         self.avh_utils.connect_vpn()
