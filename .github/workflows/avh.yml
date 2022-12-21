@@ -80,11 +80,6 @@ jobs:
         needs: arm_crosscompile
 
         steps:
-            - name: Install Linux dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y openvpn
-
             - name: Checkout
               uses: Wandalen/wretry.action@v1.0.36
               with:

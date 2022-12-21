@@ -2,7 +2,7 @@
 
 This folder contains end to end tests that use the [Arm Virtual Hardware (AVH)](https://www.arm.com/products/development-tools/simulation/virtual-hardware) service.
 
-The tests require the `AVH_API_TOKEN` environment variable is set with the value from `AVH -> Profile -> API -> API Token`.
+The tests require the `AVH_API_TOKEN` environment variable is set with the value from `AVH -> Profile -> API -> API Token` and the `AVH_SSH_KEY` environment variable is set with an [authorized private key](https://intercom.help/arm-avh/en/articles/6347261-quick-connect#h_38318e6a2f) from `AVH -> Profile -> Admin -> Settings`.
 
 ## Current tests
 

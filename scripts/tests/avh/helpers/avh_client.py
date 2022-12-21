@@ -49,8 +49,8 @@ class AvhClient:
     def instance_console_log(self, instance_id):
         return self.avh_api.v1_get_instance_console_log(instance_id).encode("utf-8")
 
-    def instance_ip(self, instance_id):
-        return self.avh_api.v1_get_instance(instance_id)["wifi_ip"]
+    def instance_quick_connect_command(self, instance_id):
+        return self.avh_api.v1_get_instance_quick_connect_command(instance_id)
 
     def delete_instance(self, instance_id):
         self.avh_api.v1_delete_instance(instance_id)

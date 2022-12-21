@@ -20,8 +20,8 @@ APPLICATION_BINARY = "chip-lighting-app"
 
 
 class AvhLightingAppInstance(AvhInstance):
-    def __init__(self, avh_client, name, application_binary_path):
-        super().__init__(avh_client, name)
+    def __init__(self, avh_client, name, ssh_key, application_binary_path):
+        super().__init__(avh_client, name, ssh_key)
 
         self.application_binary_path = application_binary_path
         self.shell_channel = None

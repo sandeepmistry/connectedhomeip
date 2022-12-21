@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import socket
 import time
 
@@ -23,7 +24,7 @@ DEFAULT_INSTANCE_OS = "Ubuntu Server"
 DEFAULT_INSTANCE_OS_VERSION = "22.04.1"
 
 DEFAULT_OS_BOOTED_OUTPUT = (
-    b"[\x1b[0;32m  OK  \x1b[0m] Reached target \x1b[0;1;39mCloud-init target\x1b[0m."
+    b"[\x1b[0;32m  OK  \x1b[0m] Started \x1b[0;1;39mCorellium Agent\x1b[0m."
 )
 
 DEFAULT_SSH_USERNAME = "pi"
@@ -35,6 +36,7 @@ class AvhInstance:
         self,
         avh_client,
         name,
+        ssh_key=None,
         flavor=DEFAULT_INSTANCE_FLAVOR,
         os=DEFAULT_INSTANCE_OS,
         os_version=DEFAULT_INSTANCE_OS_VERSION,
@@ -49,14 +51,32 @@ class AvhInstance:
         self.username = username
         self.password = password
         self.instance_id = None
+        self.ssh_proxy_client = None
         self.ssh_client = None
+
+        self.ssh_pkey = None
+        if ssh_key is not None:
+            for pkey_class in (
+                paramiko.rsakey.RSAKey,
+                paramiko.dsskey.DSSKey,
+                paramiko.ecdsakey.ECDSAKey,
+                paramiko.ed25519key.Ed25519Key,
+            ):
+                try:
+                    self.ssh_pkey = pkey_class.from_private_key(io.StringIO(ssh_key))
+                    break
+                except Exception as e:
+                    pass
+
+            if self.ssh_pkey is None:
+                raise Exception("Failed to load SSH key!")
 
     def create(self):
         self.instance_id = self.avh_client.create_instance(
             name=self.name, flavor=self.flavor, os=self.os_version, osbuild=self.os
         )
 
-    def wait_for_state_on(self, timeout=120):
+    def wait_for_state_on(self, timeout=180):
         start_time = time.monotonic()
 
         while True:
@@ -73,7 +93,7 @@ class AvhInstance:
 
             time.sleep(1.0)
 
-    def wait_for_os_boot(self, booted_output=DEFAULT_OS_BOOTED_OUTPUT, timeout=180):
+    def wait_for_os_boot(self, booted_output=DEFAULT_OS_BOOTED_OUTPUT, timeout=240):
         start_time = time.monotonic()
 
         while True:
@@ -84,7 +104,7 @@ class AvhInstance:
             elif (time.monotonic() - start_time) > timeout:
                 raise Exception(
                     f"Timedout waiting for OS to boot for instance id {self.instance_id}",
-                    f"Did not find {booted_output} in {console_log}"
+                    f"Did not find {booted_output} in {console_log}",
                 )
 
             time.sleep(1.0)
@@ -93,7 +113,25 @@ class AvhInstance:
         if self.ssh_client is not None:
             return self.ssh_client
 
-        instance_ip = self.avh_client.instance_ip(self.instance_id)
+        instance_quick_connect_command = self.avh_client.instance_quick_connect_command(
+            self.instance_id
+        )
+
+        split_instance_quick_connect_command = instance_quick_connect_command.split()
+        proxy_username = split_instance_quick_connect_command[-2].split("@")[-2]
+        proxy_hostname = split_instance_quick_connect_command[-2].split("@")[-1]
+        instance_ip = split_instance_quick_connect_command[-1].split("@")[-1]
+
+        self.ssh_proxy_client = paramiko.SSHClient()
+        self.ssh_proxy_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        self.ssh_proxy_client.connect(
+            hostname=proxy_hostname, username=proxy_username, pkey=self.ssh_pkey
+        )
+
+        proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
+            "direct-tcpip", (instance_ip, 22), ("", 0)
+        )
 
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -106,6 +144,7 @@ class AvhInstance:
                     hostname=instance_ip,
                     username=self.username,
                     password=self.password,
+                    sock=proxy_sock,
                     timeout=1.0,
                 )
 
@@ -125,6 +164,11 @@ class AvhInstance:
             self.ssh_client.close()
 
             self.ssh_client = None
+
+        if self.ssh_proxy_client is not None:
+            self.ssh_proxy_client.close()
+
+            self.ssh_proxy_client = None
 
         if self.instance_id is not None:
             self.avh_client.delete_instance(self.instance_id)
