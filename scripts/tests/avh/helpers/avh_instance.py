@@ -83,7 +83,8 @@ class AvhInstance:
                 break
             elif (time.monotonic() - start_time) > timeout:
                 raise Exception(
-                    f"Timedout waiting for OS to boot for instance id {self.instance_id}"
+                    f"Timedout waiting for OS to boot for instance id {self.instance_id}",
+                    f"Did not find {booted_output} in {console_log}"
                 )
 
             time.sleep(1.0)
