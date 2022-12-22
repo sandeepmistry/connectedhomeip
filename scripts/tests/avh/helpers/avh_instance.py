@@ -128,8 +128,13 @@ class AvhInstance:
                     look_for_keys=False,
                 )
 
+                self.ssh_proxy_client.get_transport().set_keepalive(15)
+
                 proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
-                    "direct-tcpip", (instance_ip, 22), ("", 0)
+                    kind="direct-tcpip",
+                    dest_addr=(instance_ip, 22),
+                    src_addr=("", 0),
+                    timeout=5.0
                 )
 
                 self.ssh_client.connect(
@@ -137,9 +142,11 @@ class AvhInstance:
                     username=self.username,
                     password=self.password,
                     sock=proxy_sock,
-                    timeout=1.0,
+                    timeout=5.0,
                     look_for_keys=False,
                 )
+
+                self.ssh_client.get_transport().set_keepalive(15)
 
                 break
             except:
