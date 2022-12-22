@@ -117,6 +117,9 @@ class TestLightingApp(unittest.TestCase):
         lighting_app_off_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
 
+        self.logger.info("stopping chip-lighting-app ...")
+        self.lighting_app_instance.stop_application()
+
     def cleanupInstances(self):
         self.logger.info("deleting instances ...")
         self.chip_tool_instance.delete()

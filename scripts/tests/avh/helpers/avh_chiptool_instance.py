@@ -31,30 +31,41 @@ class AvhChiptoolInstance(AvhInstance):
         stfp_client.close()
 
         ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
+        ssh_client.close()
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         ssh_client = super().ssh_client()
 
         _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"
+            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}",
+            timeout=60,
         )
 
-        return stdout.read()
+        output = stdout.read()
+        ssh_client.close()
+
+        return output
 
     def on(self, node_id):
         ssh_client = super().ssh_client()
 
         _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} onoff on {node_id} 1"
+            f"./{APPLICATION_BINARY} onoff on {node_id} 1", timeout=60
         )
 
-        return stdout.read()
+        output = stdout.read()
+        ssh_client.close()
+
+        return output
 
     def off(self, node_id):
         ssh_client = super().ssh_client()
 
         _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} onoff off {node_id} 1"
+            f"./{APPLICATION_BINARY} onoff off {node_id} 1", timeout=60
         )
 
-        return stdout.read()
+        output = stdout.read()
+        ssh_client.close()
+
+        return output

@@ -24,6 +24,7 @@ class AvhLightingAppInstance(AvhInstance):
         super().__init__(avh_client, name)
 
         self.application_binary_path = application_binary_path
+        self.ssh_client = None
         self.shell_channel = None
 
     def upload_application_binary(self):
@@ -34,6 +35,7 @@ class AvhLightingAppInstance(AvhInstance):
         stfp_client.close()
 
         ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
+        ssh_client.close()
 
     def configure_system(self):
         ssh_client = super().ssh_client()
@@ -49,11 +51,24 @@ class AvhLightingAppInstance(AvhInstance):
         ssh_client.exec_command("sudo systemctl restart wpa_supplicant.service")
         ssh_client.exec_command("sudo systemctl daemon-reload")
 
-    def start_application(self):
-        ssh_client = super().ssh_client()
+        ssh_client.close()
 
-        self.shell_channel = ssh_client.invoke_shell()
+    def start_application(self):
+        self.ssh_client = super().ssh_client()
+
+        self.shell_channel = self.ssh_client.invoke_shell()
         self.shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
+
+    def stop_application(self):
+        if self.shell_channel is not None:
+            self.shell_channel.close()
+
+            self.shell_channel = None
+
+        if self.ssh_client is not None:
+            self.ssh_client.close()
+
+            self.ssh_client = None
 
     def get_application_output(self, timeout=30):
         start_time = time.monotonic()

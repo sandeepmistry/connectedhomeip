@@ -48,8 +48,6 @@ class AvhInstance:
         self.username = username
         self.password = password
         self.instance_id = None
-        self.ssh_proxy_client = None
-        self.ssh_client = None
         self.ssh_pkey = None
         self.ssh_key_id = None
 
@@ -92,9 +90,6 @@ class AvhInstance:
             time.sleep(1.0)
 
     def ssh_client(self, timeout=60):
-        if self.ssh_client is not None:
-            return self.ssh_client
-
         if self.ssh_pkey is None:
             self.ssh_pkey = paramiko.ecdsakey.ECDSAKey.generate()
 
@@ -111,31 +106,31 @@ class AvhInstance:
         proxy_hostname = split_instance_quick_connect_command[-2].split("@")[-1]
         instance_ip = split_instance_quick_connect_command[-1].split("@")[-1]
 
-        self.ssh_proxy_client = paramiko.SSHClient()
-        self.ssh_proxy_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_proxy_client = paramiko.SSHClient()
+        ssh_proxy_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        self.ssh_client = paramiko.SSHClient()
-        self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         start_time = time.monotonic()
 
         while True:
             try:
-                self.ssh_proxy_client.connect(
+                ssh_proxy_client.connect(
                     hostname=proxy_hostname,
                     username=proxy_username,
                     pkey=self.ssh_pkey,
                     look_for_keys=False,
                 )
 
-                proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
+                proxy_sock = ssh_proxy_client.get_transport().open_channel(
                     kind="direct-tcpip",
                     dest_addr=(instance_ip, 22),
                     src_addr=("", 0),
                     timeout=5.0,
                 )
 
-                self.ssh_client.connect(
+                ssh_client.connect(
                     hostname=instance_ip,
                     username=self.username,
                     password=self.password,
@@ -143,8 +138,6 @@ class AvhInstance:
                     timeout=5.0,
                     look_for_keys=False,
                 )
-
-                self.ssh_client.get_transport().set_keepalive(15)
 
                 break
             except:
@@ -155,19 +148,9 @@ class AvhInstance:
                     f"Timedout waiting for SSH connection for instance id {self.instance_id} with IP {instance_ip}"
                 )
 
-        return self.ssh_client
+        return ssh_client
 
     def delete(self):
-        if self.ssh_client is not None:
-            self.ssh_client.close()
-
-            self.ssh_client = None
-
-        if self.ssh_proxy_client is not None:
-            self.ssh_proxy_client.close()
-
-            self.ssh_proxy_client = None
-
         if self.ssh_key_id is not None:
             self.avh_client.delete_ssh_project_key(self.ssh_key_id)
 
