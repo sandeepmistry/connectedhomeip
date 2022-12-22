@@ -29,16 +29,19 @@ TEST_WIFI_PASSWORD = "password"
 TEST_PIN_CODE = 20202021
 TEST_DISCRIMINATOR = 3840
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
 
 class TestLightingApp(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        stdout_logger_handler = logging.StreamHandler(sys.stdout)
+        stdout_logger_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s %(levelname)-8s %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        self.logger.addHandler(stdout_logger_handler)
 
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
 
