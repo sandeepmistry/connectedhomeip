@@ -115,7 +115,10 @@ class AvhInstance:
         self.ssh_proxy_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         self.ssh_proxy_client.connect(
-            hostname=proxy_hostname, username=proxy_username, pkey=self.ssh_pkey
+            hostname=proxy_hostname,
+            username=proxy_username,
+            pkey=self.ssh_pkey,
+            look_for_keys=False,
         )
 
         self.ssh_client = paramiko.SSHClient()
@@ -135,6 +138,7 @@ class AvhInstance:
                     password=self.password,
                     sock=proxy_sock,
                     timeout=1.0,
+                    look_for_keys=False,
                 )
 
                 break
