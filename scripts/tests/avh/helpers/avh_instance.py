@@ -36,7 +36,6 @@ class AvhInstance:
         self,
         avh_client,
         name,
-        ssh_key=None,
         flavor=DEFAULT_INSTANCE_FLAVOR,
         os=DEFAULT_INSTANCE_OS,
         os_version=DEFAULT_INSTANCE_OS_VERSION,
@@ -53,23 +52,8 @@ class AvhInstance:
         self.instance_id = None
         self.ssh_proxy_client = None
         self.ssh_client = None
-
         self.ssh_pkey = None
-        if ssh_key is not None:
-            for pkey_class in (
-                paramiko.rsakey.RSAKey,
-                paramiko.dsskey.DSSKey,
-                paramiko.ecdsakey.ECDSAKey,
-                paramiko.ed25519key.Ed25519Key,
-            ):
-                try:
-                    self.ssh_pkey = pkey_class.from_private_key(io.StringIO(ssh_key))
-                    break
-                except Exception as e:
-                    pass
-
-            if self.ssh_pkey is None:
-                raise Exception("Failed to load SSH key!")
+        self.ssh_key_id = None
 
     def create(self):
         self.instance_id = self.avh_client.create_instance(
@@ -112,6 +96,13 @@ class AvhInstance:
     def ssh_client(self, timeout=60):
         if self.ssh_client is not None:
             return self.ssh_client
+
+        if self.ssh_pkey is None:
+            self.ssh_pkey = paramiko.ecdsakey.ECDSAKey.generate()
+
+            self.ssh_key_id = self.avh_client.create_ssh_project_key(
+                self.name, f"{self.ssh_pkey.get_name()} {self.ssh_pkey.get_base64()}"
+            )
 
         instance_quick_connect_command = self.avh_client.instance_quick_connect_command(
             self.instance_id
@@ -169,6 +160,11 @@ class AvhInstance:
             self.ssh_proxy_client.close()
 
             self.ssh_proxy_client = None
+
+        if self.ssh_key_id is not None:
+            self.avh_client.delete_ssh_project_key(self.ssh_key_id)
+
+            self.ssh_key_id = None
 
         if self.instance_id is not None:
             self.avh_client.delete_instance(self.instance_id)

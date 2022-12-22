@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from avh_api import Configuration as AvhApiConfiguration
 from avh_api import ApiClient as AvhApiClient
+from avh_api import Configuration as AvhApiConfiguration
+from avh_api.model.project_key import ProjectKey as AvhProjectKey
 from avh_api.api.arm_api import ArmApi as AvhApi
 
 
@@ -52,11 +53,24 @@ class AvhClient:
     def instance_quick_connect_command(self, instance_id):
         return self.avh_api.v1_get_instance_quick_connect_command(instance_id)
 
+    def create_ssh_project_key(self, label, key):
+        try:
+            api_response = self.avh_api.v1_add_project_key(
+                self.default_project_id,
+                AvhProjectKey(kind="ssh", key=key, label=label),
+            )
+        except Exception as e:
+            # TODO: this API call should NOT fail!
+            pass
+
+        project_keys = self.avh_api.v1_get_project_keys(self.default_project_id)
+
+        for project_key in project_keys:
+            if "".join(project_key.key) == key:
+                return project_key.identifier
+
+    def delete_ssh_project_key(self, key_id):
+        self.avh_api.v1_remove_project_key(self.default_project_id, key_id)
+
     def delete_instance(self, instance_id):
         self.avh_api.v1_delete_instance(instance_id)
-
-    def save_vpn_config(self, path):
-        vpn_config = self.avh_api.v1_get_project_vpn_config(self.default_project_id)
-
-        with open(path, "w") as out:
-            out.write(vpn_config)

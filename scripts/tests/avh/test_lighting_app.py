@@ -43,14 +43,12 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "chip-tool",
-            ssh_key=os.environ["AVH_SSH_KEY"],
             application_binary_path="out/linux-arm64-chip-tool-ipv6only-mbedtls-clang/chip-tool",
         )
 
         self.lighting_app_instance = AvhLightingAppInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "lighting-app",
-            ssh_key=os.environ["AVH_SSH_KEY"],
             application_binary_path="out/linux-arm64-light-ipv6only-mbedtls-clang/chip-lighting-app",
         )
 

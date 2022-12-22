@@ -76,7 +76,6 @@ jobs:
 
         env:
             AVH_API_TOKEN: ${{ secrets.AVH_API_TOKEN }}
-            AVH_SSH_KEY: ${{ secrets.AVH_SSH_KEY }}
 
         needs: arm_crosscompile
 
