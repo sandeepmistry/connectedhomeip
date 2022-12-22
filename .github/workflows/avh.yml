@@ -70,7 +70,7 @@ jobs:
 
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
-        timeout-minutes: 70
+        timeout-minutes: 10
 
         runs-on: ubuntu-latest
 
