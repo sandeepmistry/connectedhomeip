@@ -24,7 +24,7 @@ DEFAULT_INSTANCE_OS = "Ubuntu Server"
 DEFAULT_INSTANCE_OS_VERSION = "22.04.1"
 
 DEFAULT_OS_BOOTED_OUTPUT = (
-    b"[\x1b[0;32m  OK  \x1b[0m] Started \x1b[0;1;39mCorellium Agent\x1b[0m."
+    b"[\x1b[0;32m  OK  \x1b[0m] Reached target \x1b[0;1;39mCloud-init target\x1b[0m."
 )
 
 DEFAULT_SSH_USERNAME = "pi"
@@ -120,10 +120,6 @@ class AvhInstance:
             hostname=proxy_hostname, username=proxy_username, pkey=self.ssh_pkey
         )
 
-        proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
-            "direct-tcpip", (instance_ip, 22), ("", 0)
-        )
-
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -131,6 +127,10 @@ class AvhInstance:
 
         while True:
             try:
+                proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
+                    "direct-tcpip", (instance_ip, 22), ("", 0)
+                )
+
                 self.ssh_client.connect(
                     hostname=instance_ip,
                     username=self.username,
