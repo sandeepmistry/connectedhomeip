@@ -128,8 +128,6 @@ class AvhInstance:
                     look_for_keys=False,
                 )
 
-                self.ssh_proxy_client.get_transport().set_keepalive(15)
-
                 proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
                     kind="direct-tcpip",
                     dest_addr=(instance_ip, 22),
