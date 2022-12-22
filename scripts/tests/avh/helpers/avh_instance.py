@@ -132,7 +132,7 @@ class AvhInstance:
                     kind="direct-tcpip",
                     dest_addr=(instance_ip, 22),
                     src_addr=("", 0),
-                    timeout=5.0
+                    timeout=5.0,
                 )
 
                 self.ssh_client.connect(
