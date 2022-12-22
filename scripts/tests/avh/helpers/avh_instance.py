@@ -23,9 +23,7 @@ DEFAULT_INSTANCE_FLAVOR = "rpi4b"
 DEFAULT_INSTANCE_OS = "Ubuntu Server"
 DEFAULT_INSTANCE_OS_VERSION = "22.04.1"
 
-DEFAULT_OS_BOOTED_OUTPUT = (
-    b"[\x1b[0;32m  OK  \x1b[0m] Reached target \x1b[0;1;39mCloud-init target\x1b[0m."
-)
+DEFAULT_OS_BOOTED_OUTPUT = "-----END SSH HOST KEY KEYS-----"
 
 DEFAULT_SSH_USERNAME = "pi"
 DEFAULT_SSH_PASSWORD = "raspberry"

@@ -35,6 +35,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+
 class TestLightingApp(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger(__name__)
