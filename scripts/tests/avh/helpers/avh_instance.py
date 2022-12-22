@@ -56,7 +56,7 @@ class AvhInstance:
             name=self.name, flavor=self.flavor, os=self.os_version, osbuild=self.os
         )
 
-    def wait_for_state_on(self, timeout=180):
+    def wait_for_state_on(self, timeout=240):
         start_time = time.monotonic()
 
         while True:
