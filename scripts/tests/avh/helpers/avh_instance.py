@@ -114,13 +114,6 @@ class AvhInstance:
         self.ssh_proxy_client = paramiko.SSHClient()
         self.ssh_proxy_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        self.ssh_proxy_client.connect(
-            hostname=proxy_hostname,
-            username=proxy_username,
-            pkey=self.ssh_pkey,
-            look_for_keys=False,
-        )
-
         self.ssh_client = paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -128,6 +121,13 @@ class AvhInstance:
 
         while True:
             try:
+                self.ssh_proxy_client.connect(
+                    hostname=proxy_hostname,
+                    username=proxy_username,
+                    pkey=self.ssh_pkey,
+                    look_for_keys=False,
+                )
+
                 proxy_sock = self.ssh_proxy_client.get_transport().open_channel(
                     "direct-tcpip", (instance_ip, 22), ("", 0)
                 )
