@@ -34,38 +34,39 @@ class AvhChiptoolInstance(AvhInstance):
         ssh_client.close()
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
-        ssh_client = super().ssh_client()
-
-        _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}",
-            timeout=60,
+        output, _ = self.exec_command(
+            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"
         )
-
-        output = stdout.read()
-        ssh_client.close()
 
         return output
 
     def on(self, node_id):
-        ssh_client = super().ssh_client()
-
-        _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} onoff on {node_id} 1", timeout=60
-        )
-
-        output = stdout.read()
-        ssh_client.close()
+        output, _ = self.exec_command(f"./{APPLICATION_BINARY} onoff on {node_id} 1")
 
         return output
 
     def off(self, node_id):
-        ssh_client = super().ssh_client()
-
-        _, stdout, _ = ssh_client.exec_command(
-            f"./{APPLICATION_BINARY} onoff off {node_id} 1", timeout=60
-        )
-
-        output = stdout.read()
-        ssh_client.close()
+        output, _ = self.exec_command(f"./{APPLICATION_BINARY} onoff off {node_id} 1")
 
         return output
+
+    def exec_command(self, command):
+        ssh_client = super().ssh_client()
+
+        output = b""
+        exit_status = None
+
+        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=60)
+
+        stdin.close()
+
+        while True:
+            output += stdout.read()
+
+            if stdout.channel.exit_status_ready():
+                exit_status = stdout.channel.recv_exit_status()
+                break
+
+        ssh_client.close()
+
+        return output, exit_status
