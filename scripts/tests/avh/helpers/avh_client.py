@@ -74,3 +74,7 @@ class AvhClient:
 
     def delete_instance(self, instance_id):
         self.avh_api.v1_delete_instance(instance_id)
+
+    def close(self):
+        self.avh_api_client.rest_client.pool_manager.clear()
+        self.avh_api_client.close()

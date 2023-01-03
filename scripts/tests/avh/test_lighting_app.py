@@ -133,6 +133,8 @@ class TestLightingApp(unittest.TestCase):
         self.chip_tool_instance.wait_for_state_deleted()
         self.lighting_app_instance.wait_for_state_deleted()
 
+        self.avh_client.close()
+
 
 if __name__ == "__main__":
     unittest.main()
