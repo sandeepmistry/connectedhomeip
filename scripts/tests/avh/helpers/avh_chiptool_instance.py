@@ -54,19 +54,20 @@ class AvhChiptoolInstance(AvhInstance):
         ssh_client = super().ssh_client()
 
         output = b""
-        exit_status = None
 
         stdin, stdout, stderr = ssh_client.exec_command(command, timeout=60)
 
         stdin.close()
 
         while True:
-            output += stdout.read()
+            data = stdout.read()
 
-            if stdout.channel.exit_status_ready():
-                exit_status = stdout.channel.recv_exit_status()
+            if len(data) == 0:
                 break
 
+            output += data
+
+        exit_status = stdout.channel.recv_exit_status()
         ssh_client.close()
 
         return output, exit_status
