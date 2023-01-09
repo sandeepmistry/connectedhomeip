@@ -28,6 +28,12 @@ class AvhChiptoolInstance(AvhInstance):
             self.application_binary_path, APPLICATION_BINARY
         )
 
+    def configure_system(self):
+        # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
+
+        self.exec_command("sudo nmcli connection delete Arm")
+        self.exec_command("sudo nmcli dev set wlan0 managed no")
+
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         output, _ = self.exec_command(
             f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"

@@ -195,7 +195,8 @@ class AvhInstance:
 
         output = b""
 
-        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=5)
+        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=30)
+        stdout.channel.set_combine_stderr(True)
 
         stdin.close()
 
@@ -207,8 +208,10 @@ class AvhInstance:
                     break
 
                 output += data
+        except socket.timeout as ste:
+            print(f"exec_command `{command}` socket timeout", ste)
         except TimeoutError as te:
-            print(f"exec_command `{command}` read timeout", e)
+            print(f"exec_command `{command}` read timeout", te)
             pass
 
         exit_status = stdout.channel.recv_exit_status()

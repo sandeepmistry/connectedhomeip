@@ -77,6 +77,7 @@ class TestLightingApp(unittest.TestCase):
         self.lighting_app_instance.upload_application_binary()
 
         self.logger.info("configuring systems ...")
+        self.chip_tool_instance.configure_system()
         self.lighting_app_instance.configure_system()
 
     def test_commissioning_and_control(self):
