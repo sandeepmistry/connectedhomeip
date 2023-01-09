@@ -24,64 +24,56 @@ class AvhLightingAppInstance(AvhInstance):
         super().__init__(avh_client, name)
 
         self.application_binary_path = application_binary_path
-        self.ssh_client = None
-        self.shell_channel = None
+        self.lighting_app_ssh_client = None
+        self.lighting_app_shell_channel = None
 
     def upload_application_binary(self):
-        ssh_client = super().ssh_client()
-
-        stfp_client = ssh_client.open_sftp()
-        stfp_client.put(self.application_binary_path, APPLICATION_BINARY)
-        stfp_client.close()
-
-        ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
-        ssh_client.close()
+        super().upload_application_binary(
+            self.application_binary_path, APPLICATION_BINARY
+        )
 
     def configure_system(self):
-        ssh_client = super().ssh_client()
         # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
 
-        ssh_client.exec_command("sudo nmcli connection delete Arm")
-        ssh_client.exec_command("sudo nmcli dev set wlan0 managed no")
+        self.exec_command("sudo nmcli connection delete Arm")
+        self.exec_command("sudo nmcli dev set wlan0 managed no")
 
         # patch and restart wpa_supplication DBus
-        ssh_client.exec_command(
+        self.exec_command(
             'sudo sed -i "s/wpa_supplicant -u -s -O/wpa_supplicant -u -s -i wlan0 -O/i" /etc/systemd/system/dbus-fi.w1.wpa_supplicant1.service'
         )
-        ssh_client.exec_command("sudo systemctl restart wpa_supplicant.service")
-        ssh_client.exec_command("sudo systemctl daemon-reload")
-
-        ssh_client.close()
+        self.exec_command("sudo systemctl restart wpa_supplicant.service")
+        self.exec_command("sudo systemctl daemon-reload")
 
     def start_application(self):
-        self.ssh_client = super().ssh_client()
+        self.lighting_app_ssh_client = super().ssh_client()
 
-        self.shell_channel = self.ssh_client.invoke_shell()
-        self.shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
+        self.lighting_app_shell_channel = self.lighting_app_ssh_client.invoke_shell()
+        self.lighting_app_shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
 
     def stop_application(self):
-        if self.shell_channel is not None:
-            self.shell_channel.close()
+        if self.lighting_app_shell_channel is not None:
+            self.lighting_app_shell_channel.close()
 
-            self.shell_channel = None
+            self.lighting_app_shell_channel = None
 
-        if self.ssh_client is not None:
-            self.ssh_client.close()
+        if self.lighting_app_ssh_client is not None:
+            self.lighting_app_ssh_client.close()
 
-            self.ssh_client = None
+            self.lighting_app_ssh_client = None
 
     def get_application_output(self, timeout=30):
         start_time = time.monotonic()
         output = b""
 
-        while not self.shell_channel.recv_ready():
+        while not self.lighting_app_shell_channel.recv_ready():
             if (time.monotonic() - start_time) > timeout:
                 break
 
             time.sleep(1.0)
 
-        while self.shell_channel.recv_ready():
-            data = self.shell_channel.recv(1024 * 1024)
+        while self.lighting_app_shell_channel.recv_ready():
+            data = self.lighting_app_shell_channel.recv(1024 * 1024)
             if len(data) == 0:
                 break
 

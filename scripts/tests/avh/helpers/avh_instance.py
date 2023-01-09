@@ -179,3 +179,39 @@ class AvhInstance:
             time.sleep(1.0)
 
         self.instance_id = None
+
+    def upload_application_binary(self, local_path, remote_path):
+        ssh_client = self.ssh_client()
+
+        stfp_client = ssh_client.open_sftp()
+        stfp_client.put(local_path, remote_path)
+        stfp_client.close()
+
+        ssh_client.exec_command(f"chmod +x {remote_path}")
+        ssh_client.close()
+
+    def exec_command(self, command):
+        ssh_client = self.ssh_client()
+
+        output = b""
+
+        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=5)
+
+        stdin.close()
+
+        try:
+            while True:
+                data = stdout.read()
+
+                if len(data) == 0:
+                    break
+
+                output += data
+        except TimeoutError as te:
+            print(f"exec_command `{command}` read timeout", e)
+            pass
+
+        exit_status = stdout.channel.recv_exit_status()
+        ssh_client.close()
+
+        return output, exit_status

@@ -24,14 +24,9 @@ class AvhChiptoolInstance(AvhInstance):
         self.application_binary_path = application_binary_path
 
     def upload_application_binary(self):
-        ssh_client = super().ssh_client()
-
-        stfp_client = ssh_client.open_sftp()
-        stfp_client.put(self.application_binary_path, APPLICATION_BINARY)
-        stfp_client.close()
-
-        ssh_client.exec_command(f"chmod +x {APPLICATION_BINARY}")
-        ssh_client.close()
+        super().upload_application_binary(
+            self.application_binary_path, APPLICATION_BINARY
+        )
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         output, _ = self.exec_command(
@@ -49,25 +44,3 @@ class AvhChiptoolInstance(AvhInstance):
         output, _ = self.exec_command(f"./{APPLICATION_BINARY} onoff off {node_id} 1")
 
         return output
-
-    def exec_command(self, command):
-        ssh_client = super().ssh_client()
-
-        output = b""
-
-        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=60)
-
-        stdin.close()
-
-        while True:
-            data = stdout.read()
-
-            if len(data) == 0:
-                break
-
-            output += data
-
-        exit_status = stdout.channel.recv_exit_status()
-        ssh_client.close()
-
-        return output, exit_status
