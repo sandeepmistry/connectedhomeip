@@ -14,6 +14,8 @@
 
 import time
 
+import websocket
+
 from .avh_instance import AvhInstance
 
 APPLICATION_BINARY = "chip-lighting-app"
@@ -24,8 +26,6 @@ class AvhLightingAppInstance(AvhInstance):
         super().__init__(avh_client, name)
 
         self.application_binary_path = application_binary_path
-        self.lighting_app_ssh_client = None
-        self.lighting_app_shell_channel = None
 
     def upload_application_binary(self):
         super().upload_application_binary(
@@ -33,51 +33,46 @@ class AvhLightingAppInstance(AvhInstance):
         )
 
     def configure_system(self):
-        # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
+        self.log_in_to_console()
 
-        self.exec_command("sudo nmcli connection delete Arm")
-        self.exec_command("sudo nmcli dev set wlan0 managed no")
+        # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
+        self.console_exec_command("sudo nmcli connection delete Arm")
+        self.console_exec_command("sudo nmcli dev set wlan0 managed no")
+
+        # set wlan0 ipv6 to have generated address based on EUI64
+        self.console_exec_command("sudo sysctl net.ipv6.conf.wlan0.addr_gen_mode=0")
 
         # patch and restart wpa_supplication DBus
-        self.exec_command(
+        self.console_exec_command(
             'sudo sed -i "s/wpa_supplicant -u -s -O/wpa_supplicant -u -s -i wlan0 -O/i" /etc/systemd/system/dbus-fi.w1.wpa_supplicant1.service'
         )
-        self.exec_command("sudo systemctl restart wpa_supplicant.service")
-        self.exec_command("sudo systemctl daemon-reload")
+        self.console_exec_command("sudo systemctl restart wpa_supplicant.service")
+        self.console_exec_command("sudo systemctl daemon-reload")
+
+        # disable eth0
+        self.console_exec_command("sudo nmcli dev set eth0 managed no")
+        self.console_exec_command("sudo ip link set dev eth0 down")
 
     def start_application(self):
-        self.lighting_app_ssh_client = super().ssh_client()
-
-        self.lighting_app_shell_channel = self.lighting_app_ssh_client.invoke_shell()
-        self.lighting_app_shell_channel.send(f"./{APPLICATION_BINARY} --wifi\n")
+        self.console.send(f"./{APPLICATION_BINARY} --wifi\n")
 
     def stop_application(self):
-        if self.lighting_app_shell_channel is not None:
-            self.lighting_app_shell_channel.close()
+        self.console.send("\03")  # CTRL-C
+        super().wait_for_console_prompt()
 
-            self.lighting_app_shell_channel = None
+    def get_application_output(self, timeout=5.0):
+        self.console.settimeout(1.0)
 
-        if self.lighting_app_ssh_client is not None:
-            self.lighting_app_ssh_client.close()
-
-            self.lighting_app_ssh_client = None
-
-    def get_application_output(self, timeout=30):
         start_time = time.monotonic()
         output = b""
 
-        while not self.lighting_app_shell_channel.recv_ready():
+        while True:
             if (time.monotonic() - start_time) > timeout:
                 break
 
-            time.sleep(1.0)
-
-        while self.lighting_app_shell_channel.recv_ready():
-            data = self.lighting_app_shell_channel.recv(1024 * 1024)
-            if len(data) == 0:
-                break
-
-            output += data
-            time.sleep(0.25)
+            try:
+                output += self.console.recv()
+            except websocket.WebSocketTimeoutException as wste:
+                pass
 
         return output

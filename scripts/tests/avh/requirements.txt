@@ -1,2 +1,3 @@
 avh-api
 paramiko
+websocket-client

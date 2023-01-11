@@ -29,25 +29,30 @@ class AvhChiptoolInstance(AvhInstance):
         )
 
     def configure_system(self):
-        # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
+        self.log_in_to_console()
 
-        self.exec_command("sudo nmcli connection delete Arm")
-        self.exec_command("sudo nmcli dev set wlan0 managed no")
-        self.exec_command("sudo ip link set dev wlan0 down")
+        # disable eth0
+        self.console_exec_command("sudo nmcli dev set eth0 managed no")
+        self.console_exec_command("sudo ip link set dev eth0 down")
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
-        output, _ = self.exec_command(
-            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}"
+        output = self.console_exec_command(
+            f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}",
+            timeout=60.0,
         )
 
         return output
 
     def on(self, node_id):
-        output, _ = self.exec_command(f"./{APPLICATION_BINARY} onoff on {node_id} 1")
+        output = self.console_exec_command(
+            f"./{APPLICATION_BINARY} onoff on {node_id} 1", timeout=30.0
+        )
 
         return output
 
     def off(self, node_id):
-        output, _ = self.exec_command(f"./{APPLICATION_BINARY} onoff off {node_id} 1")
+        output = self.console_exec_command(
+            f"./{APPLICATION_BINARY} onoff off {node_id} 1", timeout=30.0
+        )
 
         return output

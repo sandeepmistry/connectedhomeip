@@ -69,6 +69,9 @@ class AvhClient:
             if "".join(project_key.key) == key:
                 return project_key.identifier
 
+    def instance_console_url(self, instance_id):
+        return self.avh_api.v1_get_instance_console(instance_id).url
+
     def delete_ssh_project_key(self, key_id):
         self.avh_api.v1_remove_project_key(self.default_project_id, key_id)
 

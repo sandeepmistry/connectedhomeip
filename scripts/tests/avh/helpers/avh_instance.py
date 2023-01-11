@@ -18,6 +18,7 @@ import time
 
 import avh_api
 import paramiko
+import websocket
 
 DEFAULT_INSTANCE_FLAVOR = "rpi4b"
 DEFAULT_INSTANCE_OS = "Ubuntu Server"
@@ -48,6 +49,7 @@ class AvhInstance:
         self.username = username
         self.password = password
         self.instance_id = None
+        self.console = None
         self.ssh_pkey = None
         self.ssh_key_id = None
 
@@ -68,10 +70,14 @@ class AvhInstance:
                 raise Exception("VM entered error state")
             elif (time.monotonic() - start_time) > timeout:
                 raise Exception(
-                    f"Timedout waiting for state 'on' for instance id {self.instance_id}"
+                    f"Timed out waiting for state 'on' for instance id {self.instance_id}"
                 )
 
             time.sleep(1.0)
+
+        self.console = websocket.create_connection(
+            self.avh_client.instance_console_url(self.instance_id)
+        )
 
     def wait_for_os_boot(self, booted_output=DEFAULT_OS_BOOTED_OUTPUT, timeout=240):
         start_time = time.monotonic()
@@ -83,7 +89,7 @@ class AvhInstance:
                 break
             elif (time.monotonic() - start_time) > timeout:
                 raise Exception(
-                    f"Timedout waiting for OS to boot for instance id {self.instance_id}",
+                    f"Timed out waiting for OS to boot for instance id {self.instance_id}",
                     f"Did not find {booted_output} in {console_log}",
                 )
 
@@ -139,6 +145,11 @@ class AvhInstance:
         return ssh_client
 
     def delete(self):
+        if self.console is not None:
+            self.console.close()
+
+            self.console = None
+
         if self.ssh_key_id is not None:
             self.avh_client.delete_ssh_project_key(self.ssh_key_id)
 
@@ -178,31 +189,49 @@ class AvhInstance:
         ssh_client.exec_command(f"chmod +x {remote_path}")
         ssh_client.close()
 
-    def exec_command(self, command, retries=1):
-        for i in range(retries + 1):
+    def wait_for_console_output(self, expected_output, timeout=5.0):
+        self.console.settimeout(1.0)
+
+        start_time = time.monotonic()
+
+        output = b""
+        while True:
+            if (time.monotonic() - start_time) > timeout:
+                raise Exception(
+                    f"Timed out waiting for {expected_output} in console output"
+                    f"Current output is {output}"
+                )
+
             try:
-                ssh_client = self.ssh_client()
+                output += self.console.recv()
+            except websocket.WebSocketTimeoutException as wste:
+                pass
 
-                output = b""
-
-                stdin, stdout, stderr = ssh_client.exec_command(command, timeout=30)
-                stdout.channel.set_combine_stderr(True)
-
-                stdin.close()
-
-                while True:
-                    data = stdout.read()
-
-                    if len(data) == 0:
-                        break
-
-                    output += data
-
-                exit_status = stdout.channel.recv_exit_status()
-                ssh_client.close()
-
+            if expected_output in output:
                 break
-            except socket.timeout as ste:
-                print(f"exec_command `{command}` socket timeout", ste)
 
-        return output, exit_status
+        return output
+
+    def wait_for_console_prompt(self, timeout=5.0):
+        return self.wait_for_console_output(b"$ ", timeout)
+
+    def log_in_to_console(self):
+        self.console.recv()  # flush input
+        self.console.send("\n")
+
+        self.wait_for_console_output(b"login: ")
+        self.console.send(f"{self.username}\n")
+
+        self.wait_for_console_output(b"Password: ")
+        self.console.send(f"{self.password}\n")
+
+        self.wait_for_console_prompt()
+
+    def console_exec_command(self, command, timeout=1.0):
+        self.console.send("\03")  # CTRL-C
+        self.wait_for_console_prompt()
+        self.console.send(f"{command}\n")
+
+        output = self.wait_for_console_prompt(timeout)
+
+        return output
