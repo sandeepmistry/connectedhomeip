@@ -87,7 +87,7 @@ class TestLightingApp(unittest.TestCase):
         lighting_app_start_output = self.lighting_app_instance.get_application_output()
         self.assertIn(b"Server Listening...", lighting_app_start_output)
 
-        self.logger.info("commissioning with chip-tool ...")
+        self.logger.info("commissioning with chip-tool using BLE ...")
         chip_tool_commissioning_output = self.chip_tool_instance.pairing_ble_wifi(
             TEST_NODE_ID,
             TEST_WIFI_SSID,
