@@ -89,7 +89,7 @@ class AvhInstance:
 
             time.sleep(1.0)
 
-    def ssh_client(self, timeout=60):
+    def ssh_client(self, timeout=30):
         if self.ssh_pkey is None:
             self.ssh_pkey = paramiko.ecdsakey.ECDSAKey.generate()
 
@@ -112,41 +112,29 @@ class AvhInstance:
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        start_time = time.monotonic()
+        ssh_proxy_client.connect(
+            hostname=proxy_hostname,
+            username=proxy_username,
+            pkey=self.ssh_pkey,
+            look_for_keys=False,
+            timeout=timeout,
+        )
 
-        while True:
-            try:
-                ssh_proxy_client.connect(
-                    hostname=proxy_hostname,
-                    username=proxy_username,
-                    pkey=self.ssh_pkey,
-                    look_for_keys=False,
-                )
+        proxy_sock = ssh_proxy_client.get_transport().open_channel(
+            kind="direct-tcpip",
+            dest_addr=(instance_ip, 22),
+            src_addr=("", 0),
+            timeout=timeout,
+        )
 
-                proxy_sock = ssh_proxy_client.get_transport().open_channel(
-                    kind="direct-tcpip",
-                    dest_addr=(instance_ip, 22),
-                    src_addr=("", 0),
-                    timeout=5.0,
-                )
-
-                ssh_client.connect(
-                    hostname=instance_ip,
-                    username=self.username,
-                    password=self.password,
-                    sock=proxy_sock,
-                    timeout=5.0,
-                    look_for_keys=False,
-                )
-
-                break
-            except:
-                time.sleep(1.0)
-
-            if (time.monotonic() - start_time) > timeout:
-                raise Exception(
-                    f"Timedout waiting for SSH connection for instance id {self.instance_id} with IP {instance_ip}"
-                )
+        ssh_client.connect(
+            hostname=instance_ip,
+            username=self.username,
+            password=self.password,
+            sock=proxy_sock,
+            timeout=timeout,
+            look_for_keys=False,
+        )
 
         return ssh_client
 
@@ -190,31 +178,31 @@ class AvhInstance:
         ssh_client.exec_command(f"chmod +x {remote_path}")
         ssh_client.close()
 
-    def exec_command(self, command):
-        ssh_client = self.ssh_client()
+    def exec_command(self, command, retries=1):
+        for i in range(retries + 1):
+            try:
+                ssh_client = self.ssh_client()
 
-        output = b""
+                output = b""
 
-        stdin, stdout, stderr = ssh_client.exec_command(command, timeout=30)
-        stdout.channel.set_combine_stderr(True)
+                stdin, stdout, stderr = ssh_client.exec_command(command, timeout=30)
+                stdout.channel.set_combine_stderr(True)
 
-        stdin.close()
+                stdin.close()
 
-        try:
-            while True:
-                data = stdout.read()
+                while True:
+                    data = stdout.read()
 
-                if len(data) == 0:
-                    break
+                    if len(data) == 0:
+                        break
 
-                output += data
-        except socket.timeout as ste:
-            print(f"exec_command `{command}` socket timeout", ste)
-        except TimeoutError as te:
-            print(f"exec_command `{command}` read timeout", te)
-            pass
+                    output += data
 
-        exit_status = stdout.channel.recv_exit_status()
-        ssh_client.close()
+                exit_status = stdout.channel.recv_exit_status()
+                ssh_client.close()
+
+                break
+            except socket.timeout as ste:
+                print(f"exec_command `{command}` socket timeout", ste)
 
         return output, exit_status
