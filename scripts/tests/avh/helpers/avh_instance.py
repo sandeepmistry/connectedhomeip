@@ -126,21 +126,26 @@ class AvhInstance:
             timeout=timeout,
         )
 
-        proxy_sock = ssh_proxy_client.get_transport().open_channel(
-            kind="direct-tcpip",
-            dest_addr=(instance_ip, 22),
-            src_addr=("", 0),
-            timeout=timeout,
-        )
+        try:
+            proxy_sock = ssh_proxy_client.get_transport().open_channel(
+                kind="direct-tcpip",
+                dest_addr=(instance_ip, 22),
+                src_addr=("", 0),
+                timeout=timeout,
+            )
 
-        ssh_client.connect(
-            hostname=instance_ip,
-            username=self.username,
-            password=self.password,
-            sock=proxy_sock,
-            timeout=timeout,
-            look_for_keys=False,
-        )
+            ssh_client.connect(
+                hostname=instance_ip,
+                username=self.username,
+                password=self.password,
+                sock=proxy_sock,
+                timeout=timeout,
+                look_for_keys=False,
+            )
+        except Exception as e:
+            raise Exception(
+                f"Failled to connect to {instance_ip} via SSH proxy {proxy_username}@{proxy_hostname}"
+            )
 
         return ssh_client
 
