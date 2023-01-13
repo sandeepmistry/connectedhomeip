@@ -31,6 +31,10 @@ class AvhChiptoolInstance(AvhInstance):
     def configure_system(self):
         self.log_in_to_console()
 
+        # TODO remove #
+        print(self.console_exec_command("ip addr").decode())
+        ###############
+
         # disable eth0
         self.console_exec_command("sudo nmcli dev set eth0 managed no")
         self.console_exec_command("sudo ip link set dev eth0 down")
