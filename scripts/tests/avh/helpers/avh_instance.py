@@ -232,7 +232,7 @@ class AvhInstance:
 
         self.wait_for_console_prompt()
 
-    def console_exec_command(self, command, timeout=1.0):
+    def console_exec_command(self, command, timeout=5.0):
         self.console.send("\03")  # CTRL-C
         self.wait_for_console_prompt()
         self.console.send(f"{command}\n")
