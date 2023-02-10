@@ -217,7 +217,7 @@ class AvhInstance:
 
         return output
 
-    def wait_for_console_prompt(self, timeout=5.0):
+    def wait_for_console_prompt(self, timeout=10.0):
         return self.wait_for_console_output(b"$ ", timeout)
 
     def log_in_to_console(self):
@@ -232,7 +232,7 @@ class AvhInstance:
 
         self.wait_for_console_prompt()
 
-    def console_exec_command(self, command, timeout=5.0):
+    def console_exec_command(self, command, timeout=10.0):
         self.console.send("\03")  # CTRL-C
         self.wait_for_console_prompt()
         self.console.send(f"{command}\n")
