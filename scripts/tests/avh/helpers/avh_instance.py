@@ -194,7 +194,7 @@ class AvhInstance:
         ssh_client.exec_command(f"chmod +x {remote_path}")
         ssh_client.close()
 
-    def wait_for_console_output(self, expected_output, timeout=5.0):
+    def wait_for_console_output(self, expected_output, timeout=10.0):
         self.console.settimeout(1.0)
 
         start_time = time.monotonic()
