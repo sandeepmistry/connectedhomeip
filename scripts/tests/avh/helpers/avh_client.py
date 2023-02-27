@@ -32,7 +32,7 @@ class AvhClient:
         self.default_project_id = self.avh_api.v1_get_projects()[0]["id"]
 
     def create_instance(self, name, flavor, os, osbuild):
-        instance_id = self.avh_api.v1_create_instance(
+        return self.avh_api.v1_create_instance(
             {
                 "name": name,
                 "project": self.default_project_id,
@@ -41,8 +41,6 @@ class AvhClient:
                 "osbuild": osbuild,
             }
         )["id"]
-
-        return instance_id
 
     def instance_state(self, instance_id):
         return str(self.avh_api.v1_get_instance_state(instance_id))
@@ -54,20 +52,10 @@ class AvhClient:
         return self.avh_api.v1_get_instance_quick_connect_command(instance_id)
 
     def create_ssh_project_key(self, label, key):
-        try:
-            api_response = self.avh_api.v1_add_project_key(
-                self.default_project_id,
-                AvhProjectKey(kind="ssh", key=key, label=label),
-            )
-        except Exception as e:
-            # TODO: this API call should NOT fail!
-            pass
-
-        project_keys = self.avh_api.v1_get_project_keys(self.default_project_id)
-
-        for project_key in project_keys:
-            if "".join(project_key.key) == key:
-                return project_key.identifier
+        return self.avh_api.v1_add_project_key(
+            self.default_project_id,
+            AvhProjectKey(kind="ssh", key=key, label=label),
+        )["id"]
 
     def instance_console_url(self, instance_id):
         return self.avh_api.v1_get_instance_console(instance_id).url
