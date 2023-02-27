@@ -55,7 +55,7 @@ class AvhClient:
         return self.avh_api.v1_add_project_key(
             self.default_project_id,
             AvhProjectKey(kind="ssh", key=key, label=label),
-        )["id"]
+        )["identifier"]
 
     def instance_console_url(self, instance_id):
         return self.avh_api.v1_get_instance_console(instance_id).url
