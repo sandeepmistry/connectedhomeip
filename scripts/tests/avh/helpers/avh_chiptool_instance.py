@@ -31,20 +31,12 @@ class AvhChiptoolInstance(AvhInstance):
     def configure_system(self):
         self.log_in_to_console()
 
-        # TODO remove #
-        print(self.console_exec_command("ip addr").decode())
-        ###############
-
         # set wlan0 ipv6 to have generated address based on EUI64
         self.console_exec_command("sudo sysctl net.ipv6.conf.wlan0.addr_gen_mode=0")
 
         # disable eth0
         self.console_exec_command("sudo nmcli dev set eth0 managed no")
         self.console_exec_command("sudo ip link set dev eth0 down")
-
-        # TODO remove #
-        print(self.console_exec_command("ip addr").decode())
-        ###############
 
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         output = self.console_exec_command(
