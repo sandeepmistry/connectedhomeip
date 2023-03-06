@@ -31,7 +31,7 @@ jobs:
         runs-on: ubuntu-latest
 
         container:
-            image: connectedhomeip/chip-build-crosscompile:0.6.17
+            image: connectedhomeip/chip-build-crosscompile:0.6.44
 
         steps:
             - uses: Wandalen/wretry.action@v1.0.36
@@ -45,6 +45,15 @@ jobs:
 
             - name: Checkout submodules
               run: scripts/checkout_submodules.py --shallow --platform linux
+
+            - name: Bootstrap cache
+              uses: actions/cache@v3
+              timeout-minutes: 10
+              with:
+                  key: ${{ runner.os }}-env-${{ hashFiles('scripts/setup/*', 'third_party/pigweed/**') }}
+                  path: |
+                      .environment
+                      build_overrides/pigweed_environment.gni
 
             - name: Bootstrap
               timeout-minutes: 10
