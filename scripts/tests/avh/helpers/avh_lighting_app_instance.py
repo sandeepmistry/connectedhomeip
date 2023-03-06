@@ -72,7 +72,7 @@ class AvhLightingAppInstance(AvhInstance):
 
             try:
                 output += self.console.recv()
-            except websocket.WebSocketTimeoutException as wste:
+            except websocket.WebSocketTimeoutException:
                 pass
 
         return output

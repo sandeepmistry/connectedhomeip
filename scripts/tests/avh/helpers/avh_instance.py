@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
-import socket
 import time
 
 import avh_api
@@ -142,7 +140,7 @@ class AvhInstance:
                 timeout=timeout,
                 look_for_keys=False,
             )
-        except Exception as e:
+        except Exception:
             raise Exception(
                 f"Failled to connect to {instance_ip} via SSH proxy {proxy_username}@{proxy_hostname}"
             )
@@ -171,7 +169,7 @@ class AvhInstance:
 
         while True:
             try:
-                instance_state = self.avh_client.instance_state(self.instance_id)
+                self.avh_client.instance_state(self.instance_id)
             except avh_api.exceptions.NotFoundException:
                 break
 
@@ -209,7 +207,7 @@ class AvhInstance:
 
             try:
                 output += self.console.recv()
-            except websocket.WebSocketTimeoutException as wste:
+            except websocket.WebSocketTimeoutException:
                 pass
 
             if expected_output in output:
