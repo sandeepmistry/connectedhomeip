@@ -45,8 +45,6 @@ class TestLightingApp(unittest.TestCase):
 
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
 
-        # TODO: delete existing AVH instances (if applicable)
-
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "chip-tool",
@@ -114,14 +112,14 @@ class TestLightingApp(unittest.TestCase):
         self.assertIn(b"Received Command Response Status for", chip_tool_on_output)
 
         lighting_app_on_output = self.lighting_app_instance.get_application_output()
-        self.assertIn(b"Toggle on/off from 0 to 1", lighting_app_on_output)
+        self.assertIn(b"Toggle ep1 on/off from state 0 to 1", lighting_app_on_output)
 
         self.logger.info("turning light off with chip-tool ...")
         chip_tool_off_output = self.chip_tool_instance.off(TEST_NODE_ID)
         self.assertIn(b"Received Command Response Status for", chip_tool_off_output)
 
         lighting_app_off_output = self.lighting_app_instance.get_application_output()
-        self.assertIn(b"Toggle on/off from 1 to 0", lighting_app_off_output)
+        self.assertIn(b"Toggle ep1 on/off from state 1 to 0", lighting_app_off_output)
 
         self.logger.info("stopping chip-lighting-app ...")
         self.lighting_app_instance.stop_application()
