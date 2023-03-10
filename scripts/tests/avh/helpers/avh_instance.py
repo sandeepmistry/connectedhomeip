@@ -68,7 +68,7 @@ class AvhInstance:
                 raise Exception("VM entered error state")
             elif (time.monotonic() - start_time) > timeout:
                 raise Exception(
-                    f"Timed out waiting for state 'on' for instance id {self.instance_id}"
+                    f"Timed out waiting for state 'on' for instance id {self.instance_id}, current state is '{instance_state}'"
                 )
 
             time.sleep(1.0)
