@@ -11,19 +11,21 @@ The tests require the `AVH_API_TOKEN` environment variable is set with the value
 
 ## Running the tests
 
-Install dependencies
+1. Install dependencies
 
 ```
 pip3 install -r requirements.txt
 ```
 
-Set AVH_API_TOKEN` environment variable
+2. Set AVH_API_TOKEN` environment variable
 
 ```
 export AVH_API_TOKEN=<AVH API TOKEN value>
 ```
 
-Run
+3. Place crosscompiled `chip-tool` and `lighting-app` binaries in `out` folder
+
+4. Run
 
 ```
 python3 -u -m unittest test_lighting_app.py

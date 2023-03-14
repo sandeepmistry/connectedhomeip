@@ -17,9 +17,9 @@ import os
 import sys
 import unittest
 
-from .helpers.avh_client import AvhClient
-from .helpers.avh_chiptool_instance import AvhChiptoolInstance
-from .helpers.avh_lighting_app_instance import AvhLightingAppInstance
+from helpers.avh_client import AvhClient
+from helpers.avh_chiptool_instance import AvhChiptoolInstance
+from helpers.avh_lighting_app_instance import AvhLightingAppInstance
 
 INSTANCE_NAME_PREFIX = "matter-test-"
 

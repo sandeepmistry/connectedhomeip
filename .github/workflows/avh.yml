@@ -110,4 +110,5 @@ jobs:
 
             - name: Run end to end test
               run: |
-                  python3 -u -m unittest scripts/tests/avh/test_lighting_app.py
+                  cd scripts/tests/avh
+                  python3 -u -m unittest test_lighting_app.py
