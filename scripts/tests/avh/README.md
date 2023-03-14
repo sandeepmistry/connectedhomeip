@@ -8,3 +8,23 @@ The tests require the `AVH_API_TOKEN` environment variable is set with the value
 
  * [`test_lighting_app.py`](test_lighting_app.py)
    * This test uses two virtual Raspberry Pi Model 4 boards running Ubuntu Server 22.04 and pre-built `chip-tool` and `chip-lighting-app` binaries (`linux-arm64`), and tests commissioning and control over BLE and Wi-Fi using the virtual Bluetooth and Wi-Fi network features of AVH.
+
+## Running the tests
+
+Install dependencies
+
+```
+pip3 install -r requirements.txt
+```
+
+Set AVH_API_TOKEN` environment variable
+
+```
+export AVH_API_TOKEN=<AVH API TOKEN value>
+```
+
+Run
+
+```
+python3 -u -m unittest stest_lighting_app.py
+```
