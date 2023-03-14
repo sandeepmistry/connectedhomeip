@@ -23,7 +23,7 @@ pip3 install -r requirements.txt
 export AVH_API_TOKEN=<AVH API TOKEN value>
 ```
 
-3. Place crosscompiled `chip-tool` and `lighting-app` binaries in `out` folder
+3. Place cross-compiled `chip-tool` and `lighting-app` binaries in `out` folder
 
 4. Run
 
