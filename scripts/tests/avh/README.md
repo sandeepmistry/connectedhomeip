@@ -26,5 +26,5 @@ export AVH_API_TOKEN=<AVH API TOKEN value>
 Run
 
 ```
-python3 -u -m unittest stest_lighting_app.py
+python3 -u -m unittest test_lighting_app.py
 ```
