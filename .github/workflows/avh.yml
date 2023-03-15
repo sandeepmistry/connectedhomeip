@@ -15,13 +15,9 @@
 name: Arm Virtual Hardware
 
 on:
-    schedule:
-        - cron: '0 * * * *'
-    workflow_dispatch:
-
-concurrency:
-    group: ${{ github.workflow }}
-    cancel-in-progress: false
+    push:
+    pull_request:
+    merge_group:
 
 jobs:
     arm_crosscompile:
@@ -79,7 +75,6 @@ jobs:
 
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
-        timeout-minutes: 10
 
         runs-on: ubuntu-latest
 
@@ -108,7 +103,17 @@ jobs:
               run: |
                   pip3 install -r scripts/tests/avh/requirements.txt
 
+            # All AVH devices in the same account share the same virtual BLE
+            # and (Wi-Fi), use a mutex here to ensure only a single end-to-end
+            # test runs at a time
+            - name: AVH environment mutex
+              uses: ben-z/gh-action-mutex@v1.0-alpha-7
+              timeout-minutes: 1440 # 24 hours
+              with:
+                branch: gh-mutex-avh
+
             - name: Run end to end test
+              timeout-minutes: 10
               run: |
                   cd scripts/tests/avh
                   python3 -u -m unittest test_lighting_app.py
