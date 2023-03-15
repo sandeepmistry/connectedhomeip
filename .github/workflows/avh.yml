@@ -104,8 +104,8 @@ jobs:
 
             - name: Lock AVH environment
               uses: github/lock@v2
-              environment: avh
               with:
+                environment: avh
                 mode: "lock"
 
             - name: Run end to end test
@@ -115,6 +115,6 @@ jobs:
 
             - name: Unlock AVH environment
               uses: github/lock@v2
-              environment: avh
               with:
+                environment: avh
                 mode: "unlock"
