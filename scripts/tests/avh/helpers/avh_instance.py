@@ -32,12 +32,13 @@ class AvhInstance:
     def __init__(
         self,
         avh_client,
-        name,
+        name=None,
         flavor=DEFAULT_INSTANCE_FLAVOR,
         os=DEFAULT_INSTANCE_OS,
         os_version=DEFAULT_INSTANCE_OS_VERSION,
         username=DEFAULT_SSH_USERNAME,
         password=DEFAULT_SSH_PASSWORD,
+        instance_id=None,
     ):
         self.avh_client = avh_client
         self.name = name
@@ -46,7 +47,7 @@ class AvhInstance:
         self.os_version = os_version
         self.username = username
         self.password = password
-        self.instance_id = None
+        self.instance_id = instance_id
         self.console = None
         self.ssh_pkey = None
         self.ssh_key_id = None

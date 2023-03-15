@@ -19,6 +19,7 @@ import unittest
 
 from helpers.avh_chiptool_instance import AvhChiptoolInstance
 from helpers.avh_client import AvhClient
+from helpers.avh_instance import AvhInstance
 from helpers.avh_lighting_app_instance import AvhLightingAppInstance
 
 INSTANCE_NAME_PREFIX = "matter-test-"
@@ -47,6 +48,8 @@ class TestLightingApp(unittest.TestCase):
         self.logger.addHandler(stdout_logger_handler)
 
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
+
+        self.cleanupExistingInstances()
 
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
@@ -126,6 +129,33 @@ class TestLightingApp(unittest.TestCase):
 
         self.logger.info("stopping chip-lighting-app ...")
         self.lighting_app_instance.stop_application()
+
+    def cleanupExistingInstances(self):
+        existing_instances = self.avh_client.get_instances(
+            name_prefix=INSTANCE_NAME_PREFIX
+        )
+
+        if len(existing_instances) == 0:
+            return
+
+        existing_avh_instances = list(
+            map(
+                lambda instance: AvhInstance(
+                    self.avh_client, instance_id=instance["id"]
+                ),
+                existing_instances,
+            )
+        )
+
+        self.logger.info(
+            f"deleting {len(existing_avh_instances)} existing instances ..."
+        )
+
+        for avh_instance in existing_avh_instances:
+            avh_instance.delete()
+
+        for avh_instance in existing_avh_instances:
+            avh_instance.wait_for_state_deleted()
 
     def cleanupInstances(self):
         self.logger.info("deleting instances ...")

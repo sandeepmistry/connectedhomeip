@@ -31,6 +31,18 @@ class AvhClient:
 
         self.default_project_id = self.avh_api.v1_get_projects()[0]["id"]
 
+    def get_instances(self, name_prefix=None):
+        instances = self.avh_api.v1_get_instances()
+
+        if name_prefix is not None:
+            instances = list(
+                filter(
+                    lambda instance: instance["name"].startswith(name_prefix), instances
+                )
+            )
+
+        return instances
+
     def create_instance(self, name, flavor, os, osbuild):
         return self.avh_api.v1_create_instance(
             {
