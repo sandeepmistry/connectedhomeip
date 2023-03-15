@@ -19,9 +19,13 @@ import unittest
 
 from helpers.avh_chiptool_instance import AvhChiptoolInstance
 from helpers.avh_client import AvhClient
+from helpers.avh_instance import AvhInstance
 from helpers.avh_lighting_app_instance import AvhLightingAppInstance
 
 INSTANCE_NAME_PREFIX = "matter-test-"
+CHIP_TOOL_INSTANCE_NAME = INSTANCE_NAME_PREFIX + "chip-tool"
+LIGHTING_APP_INSTANCE_NAME = INSTANCE_NAME_PREFIX + "lighting-app"
+
 
 TEST_NODE_ID = 17
 TEST_WIFI_SSID = "Arm"
@@ -48,15 +52,19 @@ class TestLightingApp(unittest.TestCase):
 
         self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
 
+        self.cleanupExistingInstances(
+            [CHIP_TOOL_INSTANCE_NAME, LIGHTING_APP_INSTANCE_NAME]
+        )
+
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
-            name=INSTANCE_NAME_PREFIX + "chip-tool",
+            name=CHIP_TOOL_INSTANCE_NAME,
             application_binary_path="out/linux-arm64-chip-tool-ipv6only-mbedtls-clang-minmdns-verbose/chip-tool",
         )
 
         self.lighting_app_instance = AvhLightingAppInstance(
             self.avh_client,
-            name=INSTANCE_NAME_PREFIX + "lighting-app",
+            name=LIGHTING_APP_INSTANCE_NAME,
             application_binary_path="out/linux-arm64-light-ipv6only-mbedtls-clang-minmdns-verbose/chip-lighting-app",
         )
 
@@ -126,6 +134,34 @@ class TestLightingApp(unittest.TestCase):
 
         self.logger.info("stopping chip-lighting-app ...")
         self.lighting_app_instance.stop_application()
+
+    def cleanupExistingInstances(self, instance_names):
+        existing_instances = []
+
+        for instance_name in instance_names:
+            existing_instances += self.avh_client.get_instances(name=instance_name)
+
+        if len(existing_instances) == 0:
+            return
+
+        existing_avh_instances = list(
+            map(
+                lambda instance: AvhInstance(
+                    self.avh_client, name=instance["name"], instance_id=instance["id"]
+                ),
+                existing_instances,
+            )
+        )
+
+        self.logger.info(
+            f"deleting {len(existing_avh_instances)} existing instances ..."
+        )
+
+        for avh_instance in existing_avh_instances:
+            avh_instance.delete()
+
+        for avh_instance in existing_avh_instances:
+            avh_instance.wait_for_state_deleted()
 
     def cleanupInstances(self):
         self.logger.info("deleting instances ...")
