@@ -15,13 +15,9 @@
 name: Arm Virtual Hardware
 
 on:
-    schedule:
-        - cron: '0 * * * *'
-    workflow_dispatch:
-
-concurrency:
-    group: ${{ github.workflow }}
-    cancel-in-progress: false
+    push:
+    pull_request:
+    merge_group:
 
 jobs:
     arm_crosscompile:
@@ -80,6 +76,10 @@ jobs:
     arm_e2e_tests:
         name: Arm Virtual Hardware End to end tests
         timeout-minutes: 10
+
+        concurrency:
+          group: ${{ github.workflow }}
+          cancel-in-progress: false
 
         runs-on: ubuntu-latest
 
