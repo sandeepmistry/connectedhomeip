@@ -102,19 +102,12 @@ jobs:
               run: |
                   pip3 install -r scripts/tests/avh/requirements.txt
 
-            - name: Lock AVH environment
-              uses: github/lock@v2.0.0
+            - name: AVH environment mutex
+              uses: ben-z/gh-action-mutex@v1.0-alpha-7
               with:
-                environment: avh
-                mode: "lock"
+                branch: gh-avh-mutex
 
             - name: Run end to end test
               run: |
                   cd scripts/tests/avh
                   python3 -u -m unittest test_lighting_app.py
-
-            - name: Unlock AVH environment
-              uses: github/lock@v2.0.0
-              with:
-                environment: avh
-                mode: "unlock"
