@@ -103,7 +103,7 @@ jobs:
                   pip3 install -r scripts/tests/avh/requirements.txt
 
             - name: Lock AVH environment
-              uses: github/lock@v2
+              uses: github/lock@v2.0.0
               with:
                 environment: avh
                 mode: "lock"
@@ -114,7 +114,7 @@ jobs:
                   python3 -u -m unittest test_lighting_app.py
 
             - name: Unlock AVH environment
-              uses: github/lock@v2
+              uses: github/lock@v2.0.0
               with:
                 environment: avh
                 mode: "unlock"
