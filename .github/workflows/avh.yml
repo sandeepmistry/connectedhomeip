@@ -102,16 +102,19 @@ jobs:
               run: |
                   pip3 install -r scripts/tests/avh/requirements.txt
 
-            # Since the AVH environment has a shared virtual BLE and IP network,
-            # queue to up to 24 hours, so that the tests do not run concurrently
-            # between paralell action runs.
-            - name: AVH environment Queue
-              uses: ahmadnassri/action-workflow-queue@v1
+            - name: Lock AVH environment
+              uses: github/lock@v2
+              environment: avh
               with:
-                timeout: 1440000
-                delay: 30000
+                mode: "lock"
 
             - name: Run end to end test
               run: |
                   cd scripts/tests/avh
                   python3 -u -m unittest test_lighting_app.py
+
+            - name: Unlock AVH environment
+              uses: github/lock@v2
+              environment: avh
+              with:
+                mode: "unlock"
