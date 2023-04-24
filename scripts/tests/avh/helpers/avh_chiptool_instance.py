@@ -31,6 +31,14 @@ class AvhChiptoolInstance(AvhInstance):
     def configure_system(self):
         self.log_in_to_console()
 
+        # install network manager
+        self.console_exec_command("sudo apt-get update", timeout=300)
+        self.console_exec_command("sudo apt -y install network-manager", timeout=300)
+
+        # connect Wi-Fi to the Arm ssid
+        self.console_exec_command("sudo nmcli r wifi on")
+        self.console_exec_command("sudo nmcli d wifi connect Arm password password")
+
         # set wlan0 ipv6 to have generated address based on EUI64
         self.console_exec_command("sudo sysctl net.ipv6.conf.wlan0.addr_gen_mode=0")
 
