@@ -19,8 +19,8 @@ from avh_api.model.project_key import ProjectKey as AvhProjectKey
 
 
 class AvhClient:
-    def __init__(self, api_token):
-        avh_api_config = AvhApiConfiguration()
+    def __init__(self, api_token, api_endpoint=None):
+        avh_api_config = AvhApiConfiguration(host=api_endpoint)
         self.avh_api_client = AvhApiClient(avh_api_config)
 
         self.avh_api = AvhApi(self.avh_api_client)
