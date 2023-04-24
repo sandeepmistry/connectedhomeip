@@ -46,7 +46,12 @@ class TestLightingApp(unittest.TestCase):
         )
         self.logger.addHandler(stdout_logger_handler)
 
-        self.avh_client = AvhClient(os.environ["AVH_API_TOKEN"])
+        self.avh_client = AvhClient(
+            api_token=os.environ["AVH_API_TOKEN"],
+            api_endpoint=os.environ["AVH_API_ENDPOINT"]
+            if "AVH_API_ENDPOINT" in os.environ
+            else None,
+        )
 
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
