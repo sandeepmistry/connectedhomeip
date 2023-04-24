@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+
 from .avh_instance import AvhInstance
 
 APPLICATION_BINARY = "chip-tool"
@@ -31,8 +33,23 @@ class AvhChiptoolInstance(AvhInstance):
     def configure_system(self):
         self.log_in_to_console()
 
-        # set wlan0 ipv6 to have generated address based on EUI64
-        self.console_exec_command("sudo sysctl net.ipv6.conf.wlan0.addr_gen_mode=0")
+        # set current date and time
+        self.console_exec_command("sudo timedatectl set-ntp false", timeout=300)
+        self.console_exec_command(
+            f"sudo timedatectl set-time '{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}'",
+            timeout=300,
+        )
+        self.console_exec_command("sudo timedatectl set-ntp true", timeout=300)
+
+        # install network manager
+        self.console_exec_command("sudo apt-get update", timeout=300)
+        self.console_exec_command(
+            "sudo apt-get -y install network-manager", timeout=300
+        )
+
+        # connect Wi-Fi to the Arm ssid
+        self.console_exec_command("sudo nmcli r wifi on")
+        self.console_exec_command("sudo nmcli d wifi connect Arm password password")
 
         # disable eth0
         self.console_exec_command("sudo nmcli dev set eth0 managed no")

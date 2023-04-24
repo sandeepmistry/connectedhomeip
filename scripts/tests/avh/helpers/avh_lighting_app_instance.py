@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import time
 
 import websocket
@@ -34,6 +35,20 @@ class AvhLightingAppInstance(AvhInstance):
 
     def configure_system(self):
         self.log_in_to_console()
+
+        # set current date and time
+        self.console_exec_command("sudo timedatectl set-ntp false", timeout=300)
+        self.console_exec_command(
+            f"sudo timedatectl set-time '{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}'",
+            timeout=300,
+        )
+        self.console_exec_command("sudo timedatectl set-ntp true", timeout=300)
+
+        # install network manager
+        self.console_exec_command("sudo apt-get update", timeout=300)
+        self.console_exec_command(
+            "sudo apt-get -y install network-manager", timeout=300
+        )
 
         # remove the Wi-Fi configuration and disable network manager on the Wi-Fi interface
         self.console_exec_command("sudo nmcli connection delete Arm")
