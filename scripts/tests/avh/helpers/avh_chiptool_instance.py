@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 from .avh_instance import AvhInstance
 
 APPLICATION_BINARY = "chip-tool"
@@ -39,8 +41,21 @@ class AvhChiptoolInstance(AvhInstance):
         self.console_exec_command("sudo nmcli r wifi on")
         self.console_exec_command("sudo nmcli d wifi connect Arm password password")
 
-        # set wlan0 ipv6 to have generated address based on EUI64
-        self.console_exec_command("sudo sysctl net.ipv6.conf.wlan0.addr_gen_mode=0")
+        # wait for Wi-Fi to connect
+        start_time = time.monotonic()
+
+        while True:
+            nmcli_output = self.console_exec_command("nmcli con show --active")
+
+            if b"Arm" in nmcli_output:
+                break
+
+            if (time.monotonic() - start_time) > 10000:
+                raise Exception(
+                    f"Timedout waiting for instance id {self.instance_id} to connect to the Arm Wi-Fi SSID"
+                )
+
+            time.sleep(1.0)
 
         # disable eth0
         self.console_exec_command("sudo nmcli dev set eth0 managed no")
