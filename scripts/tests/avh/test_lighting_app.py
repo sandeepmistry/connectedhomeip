@@ -53,6 +53,13 @@ class TestLightingApp(unittest.TestCase):
             else None,
         )
 
+        if "AVH_PROJECT_NAME" in os.environ:
+            self.logger.info(f"creating project '{os.environ['AVH_PROJECT_NAME']}' ...")
+            project_id = self.avh_client.create_project(
+                name=os.environ["AVH_PROJECT_NAME"], num_cores=8
+            )
+            self.avh_client.default_project_id = project_id
+
         self.chip_tool_instance = AvhChiptoolInstance(
             self.avh_client,
             name=INSTANCE_NAME_PREFIX + "chip-tool",
@@ -146,6 +153,10 @@ class TestLightingApp(unittest.TestCase):
 
         self.chip_tool_instance.wait_for_state_deleted()
         self.lighting_app_instance.wait_for_state_deleted()
+
+        if "AVH_PROJECT_NAME" in os.environ:
+            self.logger.info("deleting project ...")
+            self.avh_client.delete_project(self.avh_client.default_project_id)
 
         self.avh_client.close()
 

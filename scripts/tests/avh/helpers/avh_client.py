@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
+
 from avh_api import ApiClient as AvhApiClient
 from avh_api import Configuration as AvhApiConfiguration
 from avh_api.api.arm_api import ArmApi as AvhApi
@@ -30,6 +32,22 @@ class AvhClient:
         ).token
 
         self.default_project_id = self.avh_api.v1_get_projects()[0]["id"]
+
+    def create_project(self, name, num_cores):
+        return self.avh_api.v1_create_project(
+            {
+                "id": str(uuid.uuid4()),
+                "name": name,
+                "settings": {
+                    "internet_access": True,
+                    "dhcp": True,
+                },
+                "quotas": {"cores": num_cores},
+            }
+        )["id"]
+
+    def delete_project(self, id):
+        self.avh_api.v1_delete_project(id)
 
     def create_instance(self, name, flavor, os, osbuild):
         return self.avh_api.v1_create_instance(
