@@ -34,35 +34,21 @@ jobs:
         timeout-minutes: 70
 
         runs-on: ubuntu-latest
+        if: github.actor != 'restyled-io[bot]'
 
         container:
-            image: connectedhomeip/chip-build-crosscompile:0.6.47
+            image: ghcr.io/project-chip/chip-build-crosscompile:1
+            volumes:
+                - "/tmp/bloat_reports:/tmp/bloat_reports"
 
         steps:
-            - uses: Wandalen/wretry.action@v1.0.36
-              name: Checkout
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Checkout submodules & Bootstrap
+              uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                  action: actions/checkout@v3
-                  with: |
-                      token: ${{ github.token }}
-                  attempt_limit: 3
-                  attempt_delay: 2000
-
-            - name: Checkout submodules
-              run: scripts/checkout_submodules.py --shallow --platform linux
-
-            - name: Bootstrap cache
-              uses: actions/cache@v3
-              timeout-minutes: 10
-              with:
-                  key: ${{ runner.os }}-env-${{ hashFiles('scripts/setup/*', 'third_party/pigweed/**') }}
-                  path: |
-                      .environment
-                      build_overrides/pigweed_environment.gni
-
-            - name: Bootstrap
-              timeout-minutes: 10
-              run: scripts/build/gn_bootstrap.sh
+                platform: linux
 
             - name: Build Samples
               timeout-minutes: 45
@@ -97,13 +83,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: Wandalen/wretry.action@v1.0.36
-              with:
-                  action: actions/checkout@v3
-                  with: |
-                      token: ${{ github.token }}
-                  attempt_limit: 3
-                  attempt_delay: 2000
+              uses: actions/checkout@v3
 
             - name: Downloads Cross-compiled samples
               uses: actions/download-artifact@v3
