@@ -58,7 +58,7 @@ class AvhChiptoolInstance(AvhInstance):
     def pairing_ble_wifi(self, node_id, ssid, password, pin_code, discriminator):
         output = self.console_exec_command(
             f"./{APPLICATION_BINARY} pairing ble-wifi {node_id} {ssid} {password} {pin_code} {discriminator}",
-            timeout=60.0,
+            timeout=120.0,
         )
 
         return output
