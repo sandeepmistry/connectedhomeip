@@ -94,5 +94,6 @@ jobs:
 
             - name: Run end to end test
               run: |
+                  source venv/bin/activate
                   cd scripts/tests/avh
                   python3 -u -m unittest test_lighting_app.py
